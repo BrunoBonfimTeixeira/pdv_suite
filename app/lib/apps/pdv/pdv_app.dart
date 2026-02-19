@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pdv_lanchonete/apps/admin/pages/home_page.dart';
+import 'package:pdv_lanchonete/apps/pdv/pages/pdv_shell.dart';
 
 class PdvApp extends StatelessWidget {
   const PdvApp({super.key});
