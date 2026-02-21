@@ -5,6 +5,7 @@
   "main": "src/app.js",
   "scripts": {
     "migrate": "node src/migrate.js",
+    "seed": "node src/seed.js",
     "start": "node src/app.js",
     "dev": "nodemon src/app.js"
   },
