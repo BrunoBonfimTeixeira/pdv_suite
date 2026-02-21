@@ -16,7 +16,7 @@ class _AdminSidePanelState extends State<AdminSidePanel> {
   static const Color _accent = Color(0xFF1EC9A5);     // teal destaque
   static const Color _text = Colors.white;
 
-  bool _cadastrosOpen = true;
+  bool _cadastrosOpen = false;
 
   bool _isActive(String route) => widget.currentRoute == route;
   bool _isAnyActive(List<String> routes) => routes.contains(widget.currentRoute);

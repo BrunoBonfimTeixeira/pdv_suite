@@ -215,6 +215,7 @@ class _AdminProdutosPageState extends State<AdminProdutosPage> {
                   _searchCtrl.clear();
                   _aplicarFiltro();
                 },
+                onNovo: () => _abrirForm(),
               ),
               const SizedBox(height: 12),
               Expanded(
@@ -268,6 +269,7 @@ class _HeroHeader extends StatelessWidget {
 
   final TextEditingController searchCtrl;
   final VoidCallback onClearSearch;
+  final VoidCallback onNovo;
 
   const _HeroHeader({
     required this.navy,
@@ -278,6 +280,7 @@ class _HeroHeader extends StatelessWidget {
     required this.onFilterChanged,
     required this.searchCtrl,
     required this.onClearSearch,
+    required this.onNovo,
   });
 
   String _filterLabel(ProdutosFilter f) {
@@ -353,6 +356,19 @@ class _HeroHeader extends StatelessWidget {
               _Chip(
                 icon: Icons.list_alt_rounded,
                 text: "$totalFiltered / $totalAll",
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton.icon(
+                onPressed: onNovo,
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text("Cadastrar"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: teal,
+                  foregroundColor: navy,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
               ),
             ],
           ),
@@ -548,14 +564,12 @@ class _ProdutosTableCard extends StatelessWidget {
             Expanded(
               child: LayoutBuilder(
                 builder: (context, c) {
-                  return Scrollbar(
-                    thumbVisibility: true,
+                  return SingleChildScrollView(
                     child: SingleChildScrollView(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(minWidth: c.maxWidth),
-                          child: DataTable(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minWidth: c.maxWidth),
+                        child: DataTable(
                             dataRowMinHeight: 58,
                             dataRowMaxHeight: 66,
                             columnSpacing: 18,
@@ -647,9 +661,8 @@ class _ProdutosTableCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
               ),
             ),
           ],
