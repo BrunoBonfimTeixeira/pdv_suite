@@ -5,7 +5,7 @@ function authRequired(req, res, next) {
   const [type, token] = header.split(" ");
 
   if (type !== "Bearer" || !token) {
-    return res.status(401).json({ message: "Não autenticado." });
+    return res.status(401).json({ message: "Nao autenticado." });
   }
 
   try {
@@ -13,13 +13,13 @@ function authRequired(req, res, next) {
     req.user = payload; // { id, nome, perfil, ... }
     return next();
   } catch (e) {
-    return res.status(401).json({ message: "Token inválido ou expirado." });
+    return res.status(401).json({ message: "Token invalido ou expirado." });
   }
 }
 
 function requireRole(...roles) {
   return (req, res, next) => {
-    if (!req.user?.perfil) return res.status(401).json({ message: "Não autenticado." });
+    if (!req.user?.perfil) return res.status(401).json({ message: "Nao autenticado." });
     if (!roles.includes(req.user.perfil)) {
       return res.status(403).json({ message: "Acesso negado." });
     }

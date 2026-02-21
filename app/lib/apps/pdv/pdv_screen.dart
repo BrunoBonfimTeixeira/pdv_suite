@@ -65,6 +65,10 @@ class _PdvScreenState extends State<PdvScreen> {
     _ctrl.setUsuario(usuario);
     _ctrl.verificarCaixaAberto();
     _ctrl.carregarFormasPagamento();
+    // Garante que o focus node pega foco apos o rebuild
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
   }
 
   // ─── KEYBOARD SHORTCUTS ───
@@ -75,6 +79,7 @@ class _PdvScreenState extends State<PdvScreen> {
 
     final key = event.logicalKey;
 
+    // Teclas de funcao sempre funcionam
     if (key == LogicalKeyboardKey.f1) {
       _abrirCaixa();
       return KeyEventResult.handled;
@@ -92,7 +97,11 @@ class _PdvScreenState extends State<PdvScreen> {
       return KeyEventResult.handled;
     }
 
-    // Letras só se não estiver digitando em um campo
+    // Teclas de letra - verificar se nao esta em campo de texto
+    final primaryFocus = FocusManager.instance.primaryFocus;
+    final isTextInput = primaryFocus?.context?.widget is EditableText;
+    if (isTextInput) return KeyEventResult.ignored;
+
     if (key == LogicalKeyboardKey.keyF) {
       _finalizarVenda();
       return KeyEventResult.handled;
@@ -114,7 +123,7 @@ class _PdvScreenState extends State<PdvScreen> {
       return KeyEventResult.handled;
     }
     if (key == LogicalKeyboardKey.keyP) {
-      _finalizarVenda(); // abre pagamentos
+      _finalizarVenda();
       return KeyEventResult.handled;
     }
 
@@ -292,36 +301,34 @@ class _PdvScreenState extends State<PdvScreen> {
       focusNode: _focusNode,
       autofocus: true,
       onKeyEvent: _handleKeyEvent,
-      child: Scaffold(
-        backgroundColor: PdvTheme.bg,
-        body: Column(
-          children: [
-            // Top bar
-            PdvTopBar(controller: _ctrl),
-            // Main content
-            Expanded(
-              child: Row(
-                children: [
-                  // Left: Items panel
-                  Expanded(
-                    flex: 3,
-                    child: PdvItensPanel(controller: _ctrl),
-                  ),
-                  // Right: Summary panel
-                  SizedBox(
-                    width: 320,
-                    child: PdvResumoPanel(
-                      controller: _ctrl,
-                      onFinalizar: _finalizarVenda,
-                      onCancelar: _cancelarVenda,
+      child: GestureDetector(
+        onTap: () => _focusNode.requestFocus(),
+        child: Scaffold(
+          backgroundColor: PdvTheme.bg,
+          body: Column(
+            children: [
+              PdvTopBar(controller: _ctrl),
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: PdvItensPanel(controller: _ctrl),
                     ),
-                  ),
-                ],
+                    SizedBox(
+                      width: 320,
+                      child: PdvResumoPanel(
+                        controller: _ctrl,
+                        onFinalizar: _finalizarVenda,
+                        onCancelar: _cancelarVenda,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            // Bottom shortcut bar
-            const PdvShortcutBar(),
-          ],
+              const PdvShortcutBar(),
+            ],
+          ),
         ),
       ),
     );

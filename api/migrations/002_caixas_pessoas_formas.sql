@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS formas_pagamento (
 -- Seed formas de pagamento
 INSERT IGNORE INTO formas_pagamento (id, descricao, tipo, ativo) VALUES
   (1, 'Dinheiro',       'DINHEIRO', 1),
-  (2, 'Cartão Crédito', 'CREDITO',  1),
-  (3, 'Cartão Débito',  'DEBITO',   1),
+  (2, 'Cartao Credito', 'CREDITO',  1),
+  (3, 'Cartao Debito',  'DEBITO',   1),
   (4, 'PIX',            'PIX',      1);
 
 -- Pessoas (clientes/fornecedores)
@@ -47,10 +47,17 @@ CREATE TABLE IF NOT EXISTS caixas (
 
 -- Adicionar pessoa_id em vendas (nullable FK)
 ALTER TABLE vendas ADD COLUMN pessoa_id INT DEFAULT NULL;
+
+-- Limpar dados orfaos antes de adicionar FKs
+DELETE FROM venda_pagamentos WHERE venda_id IN (SELECT id FROM vendas WHERE caixa_id NOT IN (SELECT id FROM caixas));
+
+DELETE FROM venda_itens WHERE venda_id IN (SELECT id FROM vendas WHERE caixa_id NOT IN (SELECT id FROM caixas));
+
+DELETE FROM vendas WHERE caixa_id NOT IN (SELECT id FROM caixas);
+
+-- Agora adicionar as FKs
 ALTER TABLE vendas ADD CONSTRAINT fk_vendas_pessoa FOREIGN KEY (pessoa_id) REFERENCES pessoas(id);
 
--- Adicionar FK de venda_pagamentos para formas_pagamento
-ALTER TABLE venda_pagamentos ADD CONSTRAINT fk_venda_pagamentos_forma FOREIGN KEY (forma_pagamento_id) REFERENCES formas_pagamento(id);
-
--- Adicionar FK de vendas para caixas
 ALTER TABLE vendas ADD CONSTRAINT fk_vendas_caixa FOREIGN KEY (caixa_id) REFERENCES caixas(id);
+
+ALTER TABLE venda_pagamentos ADD CONSTRAINT fk_venda_pagamentos_forma FOREIGN KEY (forma_pagamento_id) REFERENCES formas_pagamento(id)

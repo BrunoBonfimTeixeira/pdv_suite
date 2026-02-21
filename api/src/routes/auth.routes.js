@@ -8,20 +8,20 @@ const router = express.Router();
 router.post("/login", async (req, res) => {
   try {
     const { login, senha } = req.body || {};
-    if (!login || !senha) return res.status(400).json({ message: "login e senha são obrigatórios." });
+    if (!login || !senha) return res.status(400).json({ message: "Login e senha obrigatorios." });
 
     const [rows] = await pool.query(
       "SELECT id, nome, login, senha_hash, perfil, ativo FROM usuarios WHERE login = ? LIMIT 1",
       [login]
     );
 
-    if (!rows.length) return res.status(401).json({ message: "Credenciais inválidas." });
+    if (!rows.length) return res.status(401).json({ message: "Credenciais invalidas." });
 
     const u = rows[0];
-    if (u.ativo !== 1) return res.status(403).json({ message: "Usuário inativo." });
+    if (u.ativo !== 1) return res.status(403).json({ message: "Usuario inativo." });
 
     const ok = await bcrypt.compare(senha, u.senha_hash);
-    if (!ok) return res.status(401).json({ message: "Credenciais inválidas." });
+    if (!ok) return res.status(401).json({ message: "Credenciais invalidas." });
 
     const token = jwt.sign(
       { id: u.id, nome: u.nome, perfil: u.perfil },
