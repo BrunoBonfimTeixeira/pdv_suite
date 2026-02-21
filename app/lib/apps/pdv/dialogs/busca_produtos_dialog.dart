@@ -44,7 +44,7 @@ class _BuscaProdutosDialogState extends State<BuscaProdutosDialog> {
         _resultados = lista.map((r) => Produto(
           id: r.id,
           descricao: r.descricao,
-          preco: r.preco,
+          preco: r.preco.toDouble(),
           codigoBarras: null,
           ativo: true,
         )).toList();
