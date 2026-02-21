@@ -164,6 +164,29 @@ class _AdminUsuariosPageState extends State<AdminUsuariosPage> {
   }
 
 
+  Future<void> _criarUsuario() async {
+    final res = await showDialog<_CreateResult>(
+      context: context,
+      builder: (_) => const _CriarUsuarioDialog(),
+    );
+    if (res == null) return;
+
+    try {
+      await AdminService.criarUsuario(
+        nome: res.nome,
+        login: res.login,
+        senha: res.senha,
+        perfil: res.perfil,
+      );
+      if (!mounted) return;
+      _snack('Usuario criado com sucesso.');
+      _load();
+    } catch (e) {
+      if (!mounted) return;
+      _snack('Erro: $e', isError: true);
+    }
+  }
+
   void _snack(String msg, {bool isError = false}) {
     final cs = Theme.of(context).colorScheme;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -182,6 +205,12 @@ class _AdminUsuariosPageState extends State<AdminUsuariosPage> {
       appBar: AppBar(
         title: const Text('Usuários'),
         actions: [
+          FilledButton.icon(
+            onPressed: _criarUsuario,
+            icon: const Icon(Icons.person_add, size: 18),
+            label: const Text('Cadastrar'),
+          ),
+          const SizedBox(width: 8),
           IconButton(
             tooltip: 'Atualizar',
             onPressed: _loading ? null : _load,
@@ -918,4 +947,102 @@ class _Debouncer {
   }
 
   void dispose() => _t?.cancel();
+}
+
+/* -------------------- Criar Usuário -------------------- */
+
+class _CreateResult {
+  final String nome;
+  final String login;
+  final String senha;
+  final String perfil;
+
+  _CreateResult({
+    required this.nome,
+    required this.login,
+    required this.senha,
+    required this.perfil,
+  });
+}
+
+class _CriarUsuarioDialog extends StatefulWidget {
+  const _CriarUsuarioDialog();
+
+  @override
+  State<_CriarUsuarioDialog> createState() => _CriarUsuarioDialogState();
+}
+
+class _CriarUsuarioDialogState extends State<_CriarUsuarioDialog> {
+  final _nomeCtrl = TextEditingController();
+  final _loginCtrl = TextEditingController();
+  final _senhaCtrl = TextEditingController();
+  String _perfil = 'OPERADOR';
+
+  @override
+  void dispose() {
+    _nomeCtrl.dispose();
+    _loginCtrl.dispose();
+    _senhaCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Novo Usuario'),
+      content: SizedBox(
+        width: 380,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _nomeCtrl,
+              decoration: const InputDecoration(labelText: 'Nome *'),
+              autofocus: true,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _loginCtrl,
+              decoration: const InputDecoration(labelText: 'Login *'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _senhaCtrl,
+              decoration: const InputDecoration(labelText: 'Senha *'),
+              obscureText: true,
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _perfil,
+              decoration: const InputDecoration(labelText: 'Perfil'),
+              items: const [
+                DropdownMenuItem(value: 'OPERADOR', child: Text('Operador')),
+                DropdownMenuItem(value: 'ADMIN', child: Text('Admin')),
+              ],
+              onChanged: (v) => setState(() => _perfil = v ?? 'OPERADOR'),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final nome = _nomeCtrl.text.trim();
+            final login = _loginCtrl.text.trim();
+            final senha = _senhaCtrl.text.trim();
+            if (nome.isEmpty || login.isEmpty || senha.isEmpty) return;
+            Navigator.pop(
+              context,
+              _CreateResult(nome: nome, login: login, senha: senha, perfil: _perfil),
+            );
+          },
+          child: const Text('Criar'),
+        ),
+      ],
+    );
+  }
 }

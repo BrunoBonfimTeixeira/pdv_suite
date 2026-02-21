@@ -180,6 +180,20 @@ class _AdminSidePanelState extends State<AdminSidePanel> {
 
                   // Itens principais (pill)
                   _NavItem(
+                    icon: Icons.receipt_outlined,
+                    label: "Vendas",
+                    active: _isActive("/admin/vendas"),
+                    accent: _accent,
+                    onTap: () => _go(context, "/admin/vendas"),
+                  ),
+                  _NavItem(
+                    icon: Icons.point_of_sale,
+                    label: "Caixas",
+                    active: _isActive("/admin/caixas"),
+                    accent: _accent,
+                    onTap: () => _go(context, "/admin/caixas"),
+                  ),
+                  _NavItem(
                     icon: Icons.attach_money,
                     label: "Financeiro",
                     active: _isActive("/admin/financeiro"),

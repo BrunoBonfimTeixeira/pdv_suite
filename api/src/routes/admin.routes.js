@@ -16,7 +16,7 @@ router.use(authRequired, requireRole("ADMIN"));
 router.use("/produtos", adminProdutosRoutes);
 
 // =========================
-// USU¡RIOS
+// USUÔøΩRIOS
 // =========================
 router.get("/usuarios", async (req, res) => {
   try {
@@ -28,7 +28,7 @@ router.get("/usuarios", async (req, res) => {
     res.json(rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Erro ao listar usu·rios" });
+    res.status(500).json({ message: "Erro ao listar usuÔøΩrios" });
   }
 });
 
@@ -57,13 +57,44 @@ router.patch("/usuarios/:id", async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Usu·rio n„o encontrado." });
+      return res.status(404).json({ message: "UsuÔøΩrio nÔøΩo encontrado." });
     }
 
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Erro ao atualizar usu·rio" });
+    res.status(500).json({ message: "Erro ao atualizar usuÔøΩrio" });
+  }
+});
+
+// =========================
+// CRIAR USU√ÅRIO
+// =========================
+router.post("/usuarios", async (req, res) => {
+  const bcrypt = require("bcryptjs");
+  const { nome, login, senha, perfil } = req.body || {};
+
+  if (!nome || !login || !senha) {
+    return res.status(400).json({ message: "nome, login e senha s√£o obrigat√≥rios." });
+  }
+
+  try {
+    // Verificar login duplicado
+    const [existing] = await pool.query("SELECT id FROM usuarios WHERE login = ?", [login]);
+    if (existing.length > 0) {
+      return res.status(409).json({ message: "Login j√° existe." });
+    }
+
+    const senhaHash = await bcrypt.hash(senha, 10);
+    const [result] = await pool.query(
+      `INSERT INTO usuarios (nome, login, senha_hash, perfil) VALUES (?, ?, ?, ?)`,
+      [nome, login, senhaHash, perfil || "OPERADOR"]
+    );
+
+    res.json({ id: result.insertId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erro ao criar usu√°rio." });
   }
 });
 

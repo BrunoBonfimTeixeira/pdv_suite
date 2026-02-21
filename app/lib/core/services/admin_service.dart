@@ -42,4 +42,31 @@ class AdminService {
       throw Exception(msg);
     }
   }
+
+  static Future<int> criarUsuario({
+    required String nome,
+    required String login,
+    required String senha,
+    String perfil = 'OPERADOR',
+  }) async {
+    try {
+      final res = await ApiClient.dio.post('/admin/usuarios', data: {
+        'nome': nome,
+        'login': login,
+        'senha': senha,
+        'perfil': perfil,
+      });
+      final body = res.data;
+      if (res.statusCode == 409) {
+        throw Exception(body?['message'] ?? 'Login já existe.');
+      }
+      if (body is Map && body['id'] != null) {
+        return (body['id'] as num).toInt();
+      }
+      throw Exception('Erro ao criar usuário.');
+    } on DioException catch (e) {
+      final msg = e.response?.data?['message']?.toString() ?? e.message ?? 'Erro';
+      throw Exception(msg);
+    }
+  }
 }

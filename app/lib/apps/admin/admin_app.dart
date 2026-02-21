@@ -4,6 +4,9 @@ import 'package:pdv_lanchonete/apps/admin/pages/admin_login_page.dart';
 import 'package:pdv_lanchonete/apps/admin/admin_theme.dart';
 import 'package:pdv_lanchonete/apps/admin/admin_usuarios_page.dart';
 import 'package:pdv_lanchonete/apps/admin/pages/admin_produtos_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_vendas_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_caixas_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_pessoas_page.dart';
 import 'package:pdv_lanchonete/core/services/api_client.dart';
 import 'package:pdv_lanchonete/core/services/auth_service.dart';
 import 'package:pdv_lanchonete/core/services/admin_produtos_service.dart';
@@ -27,10 +30,7 @@ class _AdminAppState extends State<AdminApp> {
 
   Future<void> _boot() async {
     try {
-      // ✅ garante interceptors/headers
       ApiClient.init();
-
-      // ✅ liga rotas admin (agora você já tem /admin/produtos)
       AdminProdutosService.useAdminEndpoints = true;
 
       final user = await AuthService.tryRestoreSession();
@@ -51,14 +51,10 @@ class _AdminAppState extends State<AdminApp> {
     }
   }
 
-  // ✅ chamado após login com sucesso
   void _onLoggedIn() {
     setState(() => _logged = true);
-    // opcional: garante que sempre cai na home após login
-    // (evita rota antiga ficar "presa")
   }
 
-  // ✅ chamado após logout (se você implementar)
   void _onLoggedOut() {
     setState(() => _logged = false);
   }
@@ -74,10 +70,13 @@ class _AdminAppState extends State<AdminApp> {
         "/admin/home": (_) => const AdminHomePage(),
         "/admin/usuarios": (_) => const AdminUsuariosPage(),
         "/admin/produtos": (_) => const AdminProdutosPage(),
+        "/admin/vendas": (_) => const AdminVendasPage(),
+        "/admin/caixas": (_) => const AdminCaixasPage(),
+        "/admin/pessoas": (_) => const AdminPessoasPage(),
       },
       onUnknownRoute: (_) => MaterialPageRoute(
         builder: (_) => const Scaffold(
-          body: Center(child: Text("Rota não encontrada")),
+          body: Center(child: Text("Rota nao encontrada")),
         ),
       ),
       home: !_ready

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:pdv_lanchonete/core/models/item_carrinho.dart';
 import 'package:pdv_lanchonete/core/models/venda.dart';
+import 'package:pdv_lanchonete/core/models/venda_detalhe.dart';
 import 'package:pdv_lanchonete/core/services/api_client.dart';
 
 class VendaService {
@@ -8,6 +9,8 @@ class VendaService {
     required int caixaId,
     required int usuarioId,
     required Venda venda,
+    int? pessoaId,
+    List<Map<String, dynamic>>? pagamentos,
   }) async {
     final itens = venda.itens.map((ItemCarrinho item) {
       return {
@@ -18,12 +21,11 @@ class VendaService {
       };
     }).toList();
 
-    final double totalBruto = venda.total;
-    final double desconto = 0.0;
-    final double acrescimo = 0.0;
-    final double totalLiquido = totalBruto;
+    final double totalLiquido = venda.total;
 
-    const int formaPagamentoId = 1; // ajuste depois (dinheiro/cartão etc.)
+    final pags = pagamentos ?? [
+      {'formaPagamentoId': 1, 'valor': totalLiquido}
+    ];
 
     try {
       final res = await ApiClient.dio.post(
@@ -31,16 +33,9 @@ class VendaService {
         data: {
           'caixaId': caixaId,
           'usuarioId': usuarioId,
-          'totalBruto': totalBruto,
-          'desconto': desconto,
-          'acrescimo': acrescimo,
-          'totalLiquido': totalLiquido,
-          'status': 'FINALIZADA',
-          'numeroNfe': 0,
+          if (pessoaId != null) 'pessoaId': pessoaId,
           'itens': itens,
-          'pagamentos': [
-            {'formaPagamentoId': formaPagamentoId, 'valor': totalLiquido}
-          ],
+          'pagamentos': pags,
         },
       );
 
@@ -48,13 +43,60 @@ class VendaService {
       if (body is Map && body['vendaId'] != null) {
         return (body['vendaId'] as num).toInt();
       }
-
-      // fallback: se backend retornar só um número
       if (body is num) return body.toInt();
-
       throw Exception('Resposta inesperada ao salvar venda.');
     } on DioException catch (e) {
       final msg = e.response?.data?.toString() ?? e.message ?? 'Erro ao salvar venda';
+      throw Exception(msg);
+    }
+  }
+
+  static Future<List<VendaDetalhe>> listar({
+    String? status,
+    int? caixaId,
+    int? usuarioId,
+    int? limit,
+  }) async {
+    try {
+      final params = <String, dynamic>{};
+      if (status != null) params['status'] = status;
+      if (caixaId != null) params['caixaId'] = caixaId;
+      if (usuarioId != null) params['usuarioId'] = usuarioId;
+      if (limit != null) params['limit'] = limit;
+
+      final res = await ApiClient.dio.get('/vendas', queryParameters: params);
+      if (res.data is List) {
+        return (res.data as List)
+            .whereType<Map>()
+            .map((m) => VendaDetalhe.fromListJson(Map<String, dynamic>.from(m)))
+            .toList();
+      }
+      return [];
+    } on DioException catch (e) {
+      final msg = e.response?.data?.toString() ?? e.message ?? 'Erro';
+      throw Exception(msg);
+    }
+  }
+
+  static Future<VendaDetalhe> buscarPorId(int id) async {
+    try {
+      final res = await ApiClient.dio.get('/vendas/$id');
+      return VendaDetalhe.fromJson(Map<String, dynamic>.from(res.data));
+    } on DioException catch (e) {
+      final msg = e.response?.data?.toString() ?? e.message ?? 'Erro';
+      throw Exception(msg);
+    }
+  }
+
+  static Future<void> cancelar(int id) async {
+    try {
+      final res = await ApiClient.dio.patch('/vendas/$id/cancelar');
+      if (res.statusCode != 200) {
+        final msg = res.data?['message']?.toString() ?? 'Erro ao cancelar venda';
+        throw Exception(msg);
+      }
+    } on DioException catch (e) {
+      final msg = e.response?.data?.toString() ?? e.message ?? 'Erro';
       throw Exception(msg);
     }
   }
