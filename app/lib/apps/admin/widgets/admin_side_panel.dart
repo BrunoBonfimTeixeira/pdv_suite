@@ -67,185 +67,192 @@ class _AdminSidePanelState extends State<AdminSidePanel> {
                 children: [
                   const SizedBox(height: 10),
                   const _Header(accent: _accent),
-
                   const SizedBox(height: 6),
 
-                  // GRUPO: CADASTROS (expansível)
-                  _GroupTile(
-                    icon: Icons.menu_book_outlined,
-                    title: "Cadastros",
-                    isOpen: _cadastrosOpen,
-                    isHighlighted: _isAnyActive(cadastrosRoutes),
-                    accent: _accent,
-                    onTap: () => setState(() => _cadastrosOpen = !_cadastrosOpen),
-                  ),
-
-                  AnimatedCrossFade(
-                    duration: const Duration(milliseconds: 180),
-                    crossFadeState: _cadastrosOpen
-                        ? CrossFadeState.showFirst
-                        : CrossFadeState.showSecond,
-                    firstChild: Container(
-                      margin: const EdgeInsets.fromLTRB(10, 6, 10, 10),
-                      decoration: BoxDecoration(
-                        color: _subBg,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white10),
-                      ),
+                  // Scrollable nav area
+                  Expanded(
+                    child: SingleChildScrollView(
                       child: Column(
                         children: [
-                          _SubItem(
-                            icon: Icons.groups_2_outlined,
-                            label: "Pessoas",
-                            active: _isActive("/admin/pessoas"),
+                          // GRUPO: CADASTROS (expansível)
+                          _GroupTile(
+                            icon: Icons.menu_book_outlined,
+                            title: "Cadastros",
+                            isOpen: _cadastrosOpen,
+                            isHighlighted: _isAnyActive(cadastrosRoutes),
                             accent: _accent,
-                            onTap: () => _go(context, "/admin/pessoas"),
+                            onTap: () => setState(() => _cadastrosOpen = !_cadastrosOpen),
                           ),
-                          _SubItem(
-                            icon: Icons.inventory_2_outlined,
-                            label: "Produtos",
-                            active: _isActive("/admin/produtos"),
+
+                          AnimatedCrossFade(
+                            duration: const Duration(milliseconds: 180),
+                            crossFadeState: _cadastrosOpen
+                                ? CrossFadeState.showFirst
+                                : CrossFadeState.showSecond,
+                            firstChild: Container(
+                              margin: const EdgeInsets.fromLTRB(10, 6, 10, 10),
+                              decoration: BoxDecoration(
+                                color: _subBg,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.white10),
+                              ),
+                              child: Column(
+                                children: [
+                                  _SubItem(
+                                    icon: Icons.groups_2_outlined,
+                                    label: "Pessoas",
+                                    active: _isActive("/admin/pessoas"),
+                                    accent: _accent,
+                                    onTap: () => _go(context, "/admin/pessoas"),
+                                  ),
+                                  _SubItem(
+                                    icon: Icons.inventory_2_outlined,
+                                    label: "Produtos",
+                                    active: _isActive("/admin/produtos"),
+                                    accent: _accent,
+                                    onTap: () => _go(context, "/admin/produtos"),
+                                  ),
+                                  _SubItem(
+                                    icon: Icons.credit_card_outlined,
+                                    label: "Cartões",
+                                    active: _isActive("/admin/cartoes"),
+                                    accent: _accent,
+                                    onTap: () => _go(context, "/admin/cartoes"),
+                                  ),
+                                  _SubItem(
+                                    icon: Icons.person_outline,
+                                    label: "Usuários",
+                                    active: _isActive("/admin/usuarios"),
+                                    accent: _accent,
+                                    onTap: () => _go(context, "/admin/usuarios"),
+                                  ),
+                                  _SubItem(
+                                    icon: Icons.lock_outline,
+                                    label: "Permissões",
+                                    active: _isActive("/admin/permissoes"),
+                                    accent: _accent,
+                                    onTap: () => _go(context, "/admin/permissoes"),
+                                  ),
+                                  _SubItem(
+                                    icon: Icons.store_mall_directory_outlined,
+                                    label: "Lojas",
+                                    active: _isActive("/admin/lojas"),
+                                    accent: _accent,
+                                    onTap: () => _go(context, "/admin/lojas"),
+                                  ),
+                                  _SubItem(
+                                    icon: Icons.receipt_long_outlined,
+                                    label: "Informações Fiscais",
+                                    active: _isActive("/admin/info-fiscais"),
+                                    accent: _accent,
+                                    onTap: () => _go(context, "/admin/info-fiscais"),
+                                  ),
+                                  _SubItem(
+                                    icon: Icons.swap_horiz_outlined,
+                                    label: "Conversão de UM",
+                                    active: _isActive("/admin/conversao-um"),
+                                    accent: _accent,
+                                    onTap: () => _go(context, "/admin/conversao-um"),
+                                  ),
+                                  _SubItem(
+                                    icon: Icons.table_chart_outlined,
+                                    label: "Tabela Nutricional",
+                                    active: _isActive("/admin/tabela-nutricional"),
+                                    accent: _accent,
+                                    onTap: () => _go(context, "/admin/tabela-nutricional"),
+                                  ),
+                                  _SubItem(
+                                    icon: Icons.info_outline,
+                                    label: "Informações Extras",
+                                    active: _isActive("/admin/info-extras"),
+                                    accent: _accent,
+                                    onTap: () => _go(context, "/admin/info-extras"),
+                                  ),
+                                  _SubItem(
+                                    icon: Icons.category_outlined,
+                                    label: "Categorias",
+                                    active: _isActive("/admin/categorias"),
+                                    accent: _accent,
+                                    onTap: () => _go(context, "/admin/categorias"),
+                                  ),
+                                  const SizedBox(height: 8),
+                                ],
+                              ),
+                            ),
+                            secondChild: const SizedBox.shrink(),
+                          ),
+
+                          // Itens principais (pill)
+                          _NavItem(
+                            icon: Icons.receipt_outlined,
+                            label: "Vendas",
+                            active: _isActive("/admin/vendas"),
                             accent: _accent,
-                            onTap: () => _go(context, "/admin/produtos"),
+                            onTap: () => _go(context, "/admin/vendas"),
                           ),
-                          _SubItem(
-                            icon: Icons.credit_card_outlined,
-                            label: "Cartões",
-                            active: _isActive("/admin/cartoes"),
+                          _NavItem(
+                            icon: Icons.point_of_sale,
+                            label: "Caixas",
+                            active: _isActive("/admin/caixas"),
                             accent: _accent,
-                            onTap: () => _go(context, "/admin/cartoes"),
+                            onTap: () => _go(context, "/admin/caixas"),
                           ),
-                          _SubItem(
-                            icon: Icons.person_outline,
-                            label: "Usuários",
-                            active: _isActive("/admin/usuarios"),
+                          _NavItem(
+                            icon: Icons.payment,
+                            label: "Formas de Pagamento",
+                            active: _isActive("/admin/formas-pagamento"),
                             accent: _accent,
-                            onTap: () => _go(context, "/admin/usuarios"),
+                            onTap: () => _go(context, "/admin/formas-pagamento"),
                           ),
-                          _SubItem(
-                            icon: Icons.lock_outline,
-                            label: "Permissões",
-                            active: _isActive("/admin/permissoes"),
+                          _NavItem(
+                            icon: Icons.inventory_2,
+                            label: "Estoque",
+                            active: _isActive("/admin/estoque"),
                             accent: _accent,
-                            onTap: () => _go(context, "/admin/permissoes"),
+                            onTap: () => _go(context, "/admin/estoque"),
                           ),
-                          _SubItem(
-                            icon: Icons.store_mall_directory_outlined,
-                            label: "Lojas",
-                            active: _isActive("/admin/lojas"),
+                          _NavItem(
+                            icon: Icons.bar_chart_outlined,
+                            label: "Relatórios",
+                            active: _isActive("/admin/relatorios"),
                             accent: _accent,
-                            onTap: () => _go(context, "/admin/lojas"),
+                            onTap: () => _go(context, "/admin/relatorios"),
                           ),
-                          _SubItem(
+                          _NavItem(
+                            icon: Icons.dashboard_outlined,
+                            label: "Painel de Controle",
+                            active: _isActive("/admin/home"),
+                            accent: _accent,
+                            onTap: () => _go(context, "/admin/home"),
+                          ),
+                          _NavItem(
                             icon: Icons.receipt_long_outlined,
-                            label: "Informações Fiscais",
-                            active: _isActive("/admin/info-fiscais"),
+                            label: "Nota Fiscal Eletrônica",
+                            active: _isActive("/admin/nfe"),
                             accent: _accent,
-                            onTap: () => _go(context, "/admin/info-fiscais"),
+                            onTap: () => _go(context, "/admin/nfe"),
                           ),
-                          _SubItem(
-                            icon: Icons.swap_horiz_outlined,
-                            label: "Conversão de UM",
-                            active: _isActive("/admin/conversao-um"),
+                          _NavItem(
+                            icon: Icons.build_outlined,
+                            label: "Ordem de Serviço",
+                            active: _isActive("/admin/os"),
                             accent: _accent,
-                            onTap: () => _go(context, "/admin/conversao-um"),
+                            onTap: () => _go(context, "/admin/os"),
                           ),
-                          _SubItem(
-                            icon: Icons.table_chart_outlined,
-                            label: "Tabela Nutricional",
-                            active: _isActive("/admin/tabela-nutricional"),
+                          _NavItem(
+                            icon: Icons.storage_outlined,
+                            label: "Backup BD",
+                            active: _isActive("/admin/backup"),
                             accent: _accent,
-                            onTap: () => _go(context, "/admin/tabela-nutricional"),
-                          ),
-                          _SubItem(
-                            icon: Icons.info_outline,
-                            label: "Informações Extras",
-                            active: _isActive("/admin/info-extras"),
-                            accent: _accent,
-                            onTap: () => _go(context, "/admin/info-extras"),
-                          ),
-                          _SubItem(
-                            icon: Icons.category_outlined,
-                            label: "Categorias",
-                            active: _isActive("/admin/categorias"),
-                            accent: _accent,
-                            onTap: () => _go(context, "/admin/categorias"),
+                            onTap: () => _go(context, "/admin/backup"),
                           ),
                           const SizedBox(height: 8),
                         ],
                       ),
                     ),
-                    secondChild: const SizedBox.shrink(),
                   ),
 
-                  // Itens principais (pill)
-                  _NavItem(
-                    icon: Icons.receipt_outlined,
-                    label: "Vendas",
-                    active: _isActive("/admin/vendas"),
-                    accent: _accent,
-                    onTap: () => _go(context, "/admin/vendas"),
-                  ),
-                  _NavItem(
-                    icon: Icons.point_of_sale,
-                    label: "Caixas",
-                    active: _isActive("/admin/caixas"),
-                    accent: _accent,
-                    onTap: () => _go(context, "/admin/caixas"),
-                  ),
-                  _NavItem(
-                    icon: Icons.attach_money,
-                    label: "Financeiro",
-                    active: _isActive("/admin/financeiro"),
-                    accent: _accent,
-                    onTap: () => _go(context, "/admin/financeiro"),
-                  ),
-                  _NavItem(
-                    icon: Icons.sync_alt,
-                    label: "Movimentos",
-                    active: _isActive("/admin/movimentos"),
-                    accent: _accent,
-                    onTap: () => _go(context, "/admin/movimentos"),
-                  ),
-                  _NavItem(
-                    icon: Icons.bar_chart_outlined,
-                    label: "Relatórios",
-                    active: _isActive("/admin/relatorios"),
-                    accent: _accent,
-                    onTap: () => _go(context, "/admin/relatorios"),
-                  ),
-                  _NavItem(
-                    icon: Icons.dashboard_outlined,
-                    label: "Painel de Controle",
-                    active: _isActive("/admin/home"),
-                    accent: _accent,
-                    onTap: () => _go(context, "/admin/home"),
-                  ),
-                  _NavItem(
-                    icon: Icons.receipt_long_outlined,
-                    label: "Nota Fiscal Eletrônica",
-                    active: _isActive("/admin/nfe"),
-                    accent: _accent,
-                    onTap: () => _go(context, "/admin/nfe"),
-                  ),
-                  _NavItem(
-                    icon: Icons.build_outlined,
-                    label: "Ordem de Serviço",
-                    active: _isActive("/admin/os"),
-                    accent: _accent,
-                    onTap: () => _go(context, "/admin/os"),
-                  ),
-                  _NavItem(
-                    icon: Icons.storage_outlined,
-                    label: "Backup BD",
-                    active: _isActive("/admin/backup"),
-                    accent: _accent,
-                    onTap: () => _go(context, "/admin/backup"),
-                  ),
-
-                  const Spacer(),
                   const Divider(color: Colors.white12, height: 1),
-
                   Padding(
                     padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
                     child: _NavItem(

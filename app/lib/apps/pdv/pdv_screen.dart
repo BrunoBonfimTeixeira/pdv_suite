@@ -12,6 +12,9 @@ import 'package:pdv_lanchonete/apps/pdv/dialogs/fechar_caixa_dialog.dart';
 import 'package:pdv_lanchonete/apps/pdv/dialogs/busca_produtos_dialog.dart';
 import 'package:pdv_lanchonete/apps/pdv/dialogs/busca_pessoas_dialog.dart';
 import 'package:pdv_lanchonete/apps/pdv/dialogs/finalizar_venda_dialog.dart';
+import 'package:pdv_lanchonete/apps/pdv/dialogs/sangria_dialog.dart';
+import 'package:pdv_lanchonete/apps/pdv/dialogs/suprimento_dialog.dart';
+import 'package:pdv_lanchonete/apps/pdv/dialogs/desconto_venda_dialog.dart';
 import 'package:pdv_lanchonete/core/models/pessoa.dart';
 import 'package:pdv_lanchonete/core/models/produto.dart';
 import 'package:pdv_lanchonete/core/models/usuario.dart';
@@ -28,6 +31,8 @@ class PdvScreen extends StatefulWidget {
 class _PdvScreenState extends State<PdvScreen> {
   final PdvController _ctrl = PdvController();
   final FocusNode _focusNode = FocusNode();
+  final TextEditingController _barcodeCtrl = TextEditingController();
+  final FocusNode _barcodeFocus = FocusNode();
   bool _booting = true;
   bool _dialogOpen = false;
 
@@ -58,6 +63,8 @@ class _PdvScreenState extends State<PdvScreen> {
     _ctrl.removeListener(_onCtrlChanged);
     _ctrl.dispose();
     _focusNode.dispose();
+    _barcodeCtrl.dispose();
+    _barcodeFocus.dispose();
     super.dispose();
   }
 
@@ -65,9 +72,28 @@ class _PdvScreenState extends State<PdvScreen> {
     _ctrl.setUsuario(usuario);
     _ctrl.verificarCaixaAberto();
     _ctrl.carregarFormasPagamento();
-    // Garante que o focus node pega foco apos o rebuild
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
+    });
+  }
+
+  // ─── BARCODE INPUT ───
+
+  void _onBarcodeSubmitted(String value) {
+    final code = value.trim();
+    if (code.isEmpty) return;
+
+    _barcodeCtrl.clear();
+
+    if (!_ctrl.caixaEstaAberto) {
+      _showSnack('Abra o caixa primeiro (F1).', isError: true);
+      return;
+    }
+
+    _ctrl.adicionarPorCodigoBarras(code).then((found) {
+      if (!found) {
+        _showSnack('Produto nao encontrado: $code', isError: true);
+      }
     });
   }
 
@@ -80,52 +106,25 @@ class _PdvScreenState extends State<PdvScreen> {
     final key = event.logicalKey;
 
     // Teclas de funcao sempre funcionam
-    if (key == LogicalKeyboardKey.f1) {
-      _abrirCaixa();
-      return KeyEventResult.handled;
-    }
-    if (key == LogicalKeyboardKey.f2) {
-      _fecharCaixa();
-      return KeyEventResult.handled;
-    }
-    if (key == LogicalKeyboardKey.f3) {
-      _buscarProdutos();
-      return KeyEventResult.handled;
-    }
-    if (key == LogicalKeyboardKey.f4) {
-      _buscarPessoas();
-      return KeyEventResult.handled;
-    }
+    if (key == LogicalKeyboardKey.f1) { _abrirCaixa(); return KeyEventResult.handled; }
+    if (key == LogicalKeyboardKey.f2) { _fecharCaixa(); return KeyEventResult.handled; }
+    if (key == LogicalKeyboardKey.f3) { _buscarProdutos(); return KeyEventResult.handled; }
+    if (key == LogicalKeyboardKey.f4) { _buscarPessoas(); return KeyEventResult.handled; }
+    if (key == LogicalKeyboardKey.f5) { _sangria(); return KeyEventResult.handled; }
+    if (key == LogicalKeyboardKey.f6) { _suprimento(); return KeyEventResult.handled; }
 
     // Teclas de letra - verificar se nao esta em campo de texto
     final primaryFocus = FocusManager.instance.primaryFocus;
     final isTextInput = primaryFocus?.context?.widget is EditableText;
     if (isTextInput) return KeyEventResult.ignored;
 
-    if (key == LogicalKeyboardKey.keyF) {
-      _finalizarVenda();
-      return KeyEventResult.handled;
-    }
-    if (key == LogicalKeyboardKey.keyC) {
-      _cancelarVenda();
-      return KeyEventResult.handled;
-    }
-    if (key == LogicalKeyboardKey.keyR) {
-      _reimprimir();
-      return KeyEventResult.handled;
-    }
-    if (key == LogicalKeyboardKey.keyI) {
-      _ctrl.toggleImpressoraAutomatica();
-      return KeyEventResult.handled;
-    }
-    if (key == LogicalKeyboardKey.keyB) {
-      _balanca();
-      return KeyEventResult.handled;
-    }
-    if (key == LogicalKeyboardKey.keyP) {
-      _finalizarVenda();
-      return KeyEventResult.handled;
-    }
+    if (key == LogicalKeyboardKey.keyF) { _finalizarVenda(); return KeyEventResult.handled; }
+    if (key == LogicalKeyboardKey.keyC) { _cancelarVenda(); return KeyEventResult.handled; }
+    if (key == LogicalKeyboardKey.keyR) { _reimprimir(); return KeyEventResult.handled; }
+    if (key == LogicalKeyboardKey.keyI) { _ctrl.toggleImpressoraAutomatica(); return KeyEventResult.handled; }
+    if (key == LogicalKeyboardKey.keyB) { _balanca(); return KeyEventResult.handled; }
+    if (key == LogicalKeyboardKey.keyP) { _finalizarVenda(); return KeyEventResult.handled; }
+    if (key == LogicalKeyboardKey.keyD) { _descontoVenda(); return KeyEventResult.handled; }
 
     return KeyEventResult.ignored;
   }
@@ -217,6 +216,86 @@ class _PdvScreenState extends State<PdvScreen> {
     }
   }
 
+  Future<void> _sangria() async {
+    if (!_ctrl.caixaEstaAberto) {
+      _showSnack('Abra o caixa primeiro (F1).', isError: true);
+      return;
+    }
+
+    _dialogOpen = true;
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (_) => const SangriaDialog(),
+    );
+    _dialogOpen = false;
+    _focusNode.requestFocus();
+
+    if (result == null) return;
+
+    try {
+      await _ctrl.registrarSangria(
+        valor: result['valor'] as double,
+        motivo: result['motivo'] as String?,
+      );
+      _showSnack(_ctrl.mensagem);
+    } catch (e) {
+      _showSnack(e.toString(), isError: true);
+    }
+  }
+
+  Future<void> _suprimento() async {
+    if (!_ctrl.caixaEstaAberto) {
+      _showSnack('Abra o caixa primeiro (F1).', isError: true);
+      return;
+    }
+
+    _dialogOpen = true;
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (_) => const SuprimentoDialog(),
+    );
+    _dialogOpen = false;
+    _focusNode.requestFocus();
+
+    if (result == null) return;
+
+    try {
+      await _ctrl.registrarSuprimento(
+        valor: result['valor'] as double,
+        motivo: result['motivo'] as String?,
+      );
+      _showSnack(_ctrl.mensagem);
+    } catch (e) {
+      _showSnack(e.toString(), isError: true);
+    }
+  }
+
+  Future<void> _descontoVenda() async {
+    if (!_ctrl.temItens) {
+      _showSnack('Adicione itens primeiro.', isError: true);
+      return;
+    }
+
+    _dialogOpen = true;
+    final result = await showDialog<double>(
+      context: context,
+      builder: (_) => DescontoVendaDialog(
+        totalBruto: _ctrl.totalBruto,
+        descontoAtual: _ctrl.descontoVenda,
+      ),
+    );
+    _dialogOpen = false;
+    _focusNode.requestFocus();
+
+    if (result == null) return;
+    _ctrl.setDescontoVenda(result);
+    if (result > 0) {
+      _showSnack('Desconto de R\$ ${result.toStringAsFixed(2)} aplicado na venda.');
+    } else {
+      _showSnack('Desconto removido.');
+    }
+  }
+
   Future<void> _finalizarVenda() async {
     if (!_ctrl.caixaEstaAberto) {
       _showSnack('Abra o caixa primeiro (F1).', isError: true);
@@ -231,7 +310,7 @@ class _PdvScreenState extends State<PdvScreen> {
     final pagamentos = await showDialog<List<Map<String, dynamic>>>(
       context: context,
       builder: (_) => FinalizarVendaDialog(
-        total: _ctrl.totalBruto,
+        total: _ctrl.totalLiquido,
         formasPagamento: _ctrl.formasPagamento,
       ),
     );
@@ -241,11 +320,65 @@ class _PdvScreenState extends State<PdvScreen> {
     if (pagamentos == null) return;
 
     try {
-      await _ctrl.finalizarVenda(pagamentos: pagamentos);
-      _showSnack(_ctrl.mensagem);
+      final vendaId = await _ctrl.finalizarVenda(pagamentos: pagamentos);
+
+      // Mostrar troco se houver
+      if (_ctrl.ultimoTroco != null && _ctrl.ultimoTroco! > 0.01) {
+        _showTrocoDialog(_ctrl.ultimoTroco!, vendaId);
+      } else {
+        _showSnack(_ctrl.mensagem);
+      }
     } catch (e) {
       _showSnack(e.toString(), isError: true);
     }
+  }
+
+  void _showTrocoDialog(double troco, int vendaId) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: PdvTheme.accent, size: 28),
+            SizedBox(width: 10),
+            Text('Venda Finalizada!', style: TextStyle(color: PdvTheme.textPrimary)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Venda #$vendaId', style: const TextStyle(color: PdvTheme.textSecondary)),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: PdvTheme.warning.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: PdvTheme.warning.withOpacity(0.4)),
+              ),
+              child: Column(
+                children: [
+                  const Text('TROCO', style: TextStyle(color: PdvTheme.warning, fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 2)),
+                  const SizedBox(height: 8),
+                  Text(
+                    'R\$ ${troco.toStringAsFixed(2)}',
+                    style: const TextStyle(color: PdvTheme.warning, fontSize: 42, fontWeight: FontWeight.w900),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(backgroundColor: PdvTheme.accent, foregroundColor: PdvTheme.bg),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _cancelarVenda() {
@@ -308,6 +441,36 @@ class _PdvScreenState extends State<PdvScreen> {
           body: Column(
             children: [
               PdvTopBar(controller: _ctrl),
+              // Barcode input bar
+              if (_ctrl.caixaEstaAberto)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: const BoxDecoration(
+                    color: PdvTheme.surface,
+                    border: Border(bottom: BorderSide(color: PdvTheme.border)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.qr_code_scanner, color: PdvTheme.accent, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: _barcodeCtrl,
+                          focusNode: _barcodeFocus,
+                          style: const TextStyle(color: PdvTheme.textPrimary, fontSize: 16),
+                          decoration: const InputDecoration(
+                            hintText: 'Codigo de barras / nome do produto...',
+                            hintStyle: TextStyle(color: PdvTheme.textSecondary),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(vertical: 8),
+                          ),
+                          onSubmitted: _onBarcodeSubmitted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               Expanded(
                 child: Row(
                   children: [

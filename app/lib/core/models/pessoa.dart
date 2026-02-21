@@ -25,7 +25,7 @@ class Pessoa {
 
   factory Pessoa.fromJson(Map<String, dynamic> json) {
     return Pessoa(
-      id: (json['id'] as num).toInt(),
+      id: (json['id'] is num) ? (json['id'] as num).toInt() : int.tryParse(json['id'].toString()) ?? 0,
       nome: json['nome'] as String? ?? '',
       cpfCnpj: json['cpf_cnpj'] as String?,
       telefone: json['telefone'] as String?,

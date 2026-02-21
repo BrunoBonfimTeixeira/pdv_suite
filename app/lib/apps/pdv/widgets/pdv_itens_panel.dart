@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pdv_lanchonete/apps/pdv/pdv_controller.dart';
 import 'package:pdv_lanchonete/apps/pdv/pdv_theme.dart';
+import 'package:pdv_lanchonete/apps/pdv/dialogs/desconto_item_dialog.dart';
 
 class PdvItensPanel extends StatelessWidget {
   final PdvController controller;
@@ -23,7 +24,7 @@ class PdvItensPanel extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              'Pressione F3 para buscar produtos',
+              'Use o campo de codigo de barras ou F3 para buscar',
               style: TextStyle(color: PdvTheme.textSecondary.withOpacity(0.3), fontSize: 13),
             ),
           ],
@@ -42,12 +43,13 @@ class PdvItensPanel extends StatelessWidget {
           ),
           child: const Row(
             children: [
-              SizedBox(width: 40, child: Text('#', style: _headerStyle)),
+              SizedBox(width: 36, child: Text('#', style: _headerStyle)),
               Expanded(flex: 4, child: Text('Produto', style: _headerStyle)),
-              SizedBox(width: 80, child: Text('Qtd', style: _headerStyle, textAlign: TextAlign.center)),
-              SizedBox(width: 100, child: Text('Unit.', style: _headerStyle, textAlign: TextAlign.right)),
-              SizedBox(width: 110, child: Text('Total', style: _headerStyle, textAlign: TextAlign.right)),
-              SizedBox(width: 40),
+              SizedBox(width: 70, child: Text('Qtd', style: _headerStyle, textAlign: TextAlign.center)),
+              SizedBox(width: 80, child: Text('Unit.', style: _headerStyle, textAlign: TextAlign.right)),
+              SizedBox(width: 70, child: Text('Desc.', style: _headerStyle, textAlign: TextAlign.right)),
+              SizedBox(width: 90, child: Text('Total', style: _headerStyle, textAlign: TextAlign.right)),
+              SizedBox(width: 36),
             ],
           ),
         ),
@@ -57,6 +59,8 @@ class PdvItensPanel extends StatelessWidget {
             itemCount: itens.length,
             itemBuilder: (context, index) {
               final item = itens[index];
+              final temDesconto = item.descontoCalculado > 0;
+
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
@@ -66,7 +70,7 @@ class PdvItensPanel extends StatelessWidget {
                 child: Row(
                   children: [
                     SizedBox(
-                      width: 40,
+                      width: 36,
                       child: Text(
                         '${index + 1}',
                         style: const TextStyle(color: PdvTheme.textSecondary, fontSize: 13),
@@ -81,7 +85,7 @@ class PdvItensPanel extends StatelessWidget {
                       ),
                     ),
                     SizedBox(
-                      width: 80,
+                      width: 70,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -91,10 +95,10 @@ class PdvItensPanel extends StatelessWidget {
                                 controller.alterarQuantidade(index, item.quantidade - 1);
                               }
                             },
-                            child: const Icon(Icons.remove_circle_outline, size: 18, color: PdvTheme.textSecondary),
+                            child: const Icon(Icons.remove_circle_outline, size: 16, color: PdvTheme.textSecondary),
                           ),
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
                             child: Text(
                               '${item.quantidade}',
                               style: const TextStyle(color: PdvTheme.textPrimary, fontWeight: FontWeight.w700, fontSize: 14),
@@ -102,21 +106,49 @@ class PdvItensPanel extends StatelessWidget {
                           ),
                           InkWell(
                             onTap: () => controller.alterarQuantidade(index, item.quantidade + 1),
-                            child: const Icon(Icons.add_circle_outline, size: 18, color: PdvTheme.accent),
+                            child: const Icon(Icons.add_circle_outline, size: 16, color: PdvTheme.accent),
                           ),
                         ],
                       ),
                     ),
                     SizedBox(
-                      width: 100,
+                      width: 80,
                       child: Text(
                         'R\$ ${item.preco.toStringAsFixed(2)}',
                         style: const TextStyle(color: PdvTheme.textSecondary, fontSize: 13),
                         textAlign: TextAlign.right,
                       ),
                     ),
+                    // Desconto
                     SizedBox(
-                      width: 110,
+                      width: 70,
+                      child: InkWell(
+                        onTap: () async {
+                          final result = await showDialog<Map<String, dynamic>>(
+                            context: context,
+                            builder: (_) => DescontoItemDialog(item: item),
+                          );
+                          if (result != null) {
+                            controller.setDescontoItem(
+                              index,
+                              percentual: result['percentual'] ?? 0.0,
+                              valor: result['valor'] ?? 0.0,
+                            );
+                          }
+                        },
+                        child: Text(
+                          temDesconto ? '-${item.descontoCalculado.toStringAsFixed(2)}' : '-',
+                          style: TextStyle(
+                            color: temDesconto ? PdvTheme.warning : PdvTheme.textSecondary,
+                            fontSize: 12,
+                            fontWeight: temDesconto ? FontWeight.w700 : FontWeight.normal,
+                          ),
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 90,
                       child: Text(
                         'R\$ ${item.subtotal.toStringAsFixed(2)}',
                         style: const TextStyle(color: PdvTheme.accent, fontWeight: FontWeight.w700, fontSize: 14),
@@ -124,7 +156,7 @@ class PdvItensPanel extends StatelessWidget {
                       ),
                     ),
                     SizedBox(
-                      width: 40,
+                      width: 36,
                       child: IconButton(
                         icon: const Icon(Icons.delete_outline, size: 18, color: PdvTheme.danger),
                         onPressed: () => controller.removerItem(index),

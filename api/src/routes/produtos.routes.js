@@ -12,16 +12,21 @@ router.get("/", async (req, res) => {
     const q = (req.query.q || req.query.filtro || "").toString().trim();
     if (!q) {
       const [rows] = await pool.query(
-        "SELECT id, descricao, preco_venda FROM produtos WHERE ativo = 1 ORDER BY descricao"
+        `SELECT p.id, p.descricao, p.preco_venda, p.unidade_medida, p.estoque_atual, p.codigo_barras,
+                p.categoria_id, c.descricao AS categoria_descricao
+         FROM produtos p LEFT JOIN categorias c ON c.id = p.categoria_id
+         WHERE p.ativo = 1 ORDER BY p.descricao`
       );
       return res.json(rows);
     }
 
     const like = `%${q}%`;
     const [rows] = await pool.query(
-      `SELECT id, descricao, preco_venda FROM produtos
-       WHERE ativo = 1 AND (descricao LIKE ? OR codigo_barras LIKE ? OR id = ?)
-       ORDER BY descricao`,
+      `SELECT p.id, p.descricao, p.preco_venda, p.unidade_medida, p.estoque_atual, p.codigo_barras,
+              p.categoria_id, c.descricao AS categoria_descricao
+       FROM produtos p LEFT JOIN categorias c ON c.id = p.categoria_id
+       WHERE p.ativo = 1 AND (p.descricao LIKE ? OR p.codigo_barras LIKE ? OR p.id = ?)
+       ORDER BY p.descricao`,
       [like, like, Number(q) || 0]
     );
     res.json(rows);

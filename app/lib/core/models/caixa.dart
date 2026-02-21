@@ -27,19 +27,32 @@ class Caixa {
 
   bool get isAberto => status == 'ABERTO';
 
+  static double _toDouble(dynamic v) {
+    if (v == null) return 0;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString()) ?? 0;
+  }
+
+  static double? _toDoubleNullable(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v.toDouble();
+    final d = double.tryParse(v.toString());
+    return d;
+  }
+
   factory Caixa.fromJson(Map<String, dynamic> json) {
     return Caixa(
-      id: (json['id'] as num).toInt(),
-      usuarioId: (json['usuario_id'] as num).toInt(),
+      id: (json['id'] is num) ? (json['id'] as num).toInt() : int.tryParse(json['id'].toString()) ?? 0,
+      usuarioId: (json['usuario_id'] is num) ? (json['usuario_id'] as num).toInt() : int.tryParse(json['usuario_id'].toString()) ?? 0,
       usuarioNome: json['usuario_nome'] as String?,
       dataAbertura: DateTime.parse(json['data_abertura'].toString()),
       dataFechamento: json['data_fechamento'] != null
           ? DateTime.parse(json['data_fechamento'].toString())
           : null,
-      valorAbertura: (json['valor_abertura'] as num?)?.toDouble() ?? 0,
-      valorFechamento: (json['valor_fechamento'] as num?)?.toDouble(),
-      valorSistema: (json['valor_sistema'] as num?)?.toDouble(),
-      diferenca: (json['diferenca'] as num?)?.toDouble(),
+      valorAbertura: _toDouble(json['valor_abertura']),
+      valorFechamento: _toDoubleNullable(json['valor_fechamento']),
+      valorSistema: _toDoubleNullable(json['valor_sistema']),
+      diferenca: _toDoubleNullable(json['diferenca']),
       status: json['status'] as String? ?? 'ABERTO',
       observacoes: json['observacoes'] as String?,
     );

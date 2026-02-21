@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:pdv_lanchonete/core/models/produto.dart';
+import 'package:pdv_lanchonete/core/models/categoria.dart';
 import 'package:pdv_lanchonete/core/services/admin_produtos_service.dart';
+import 'package:pdv_lanchonete/core/services/categoria_service.dart';
 
 class ProdutoFormPage extends StatefulWidget {
   final Produto? editing;
@@ -38,6 +40,10 @@ class _ProdutoFormPageState extends State<ProdutoFormPage>
   final _estoqueMin = TextEditingController(text: "0,000");
   final _estoqueAtual = TextEditingController(text: "0,000");
 
+  // Categoria
+  List<Categoria> _categorias = [];
+  int? _categoriaId;
+
   // Formação de preço (agora no Geral)
   final _precoCusto = TextEditingController(text: "0,00");
   final _markup = TextEditingController(text: "0,00");
@@ -67,19 +73,26 @@ class _ProdutoFormPageState extends State<ProdutoFormPage>
 
     final p = widget.editing;
     if (p != null) {
-      _codigoId.text = p.id.toString(); // ✅ Código = ID (travado)
+      _codigoId.text = p.id.toString();
       _desc.text = p.descricao;
       _preco.text = p.preco.toStringAsFixed(2).replaceAll(".", ",");
       _codigoBarras.text = p.codigoBarras ?? "";
       _ativo = p.ativo;
+      _um = p.unidadeMedida;
+      _categoriaId = p.categoriaId;
+      _estoqueAtual.text = p.estoqueAtual.toStringAsFixed(3).replaceAll(".", ",");
+      _estoqueMinimo.text = p.estoqueMinimo.toStringAsFixed(3).replaceAll(".", ",");
+      _controlarEstoque = p.estoqueMinimo > 0 || p.estoqueAtual > 0;
 
       _precoCusto.text =
           (p.precoCusto ?? 0).toStringAsFixed(2).replaceAll(".", ",");
       _markup.text = (p.markup ?? 0).toStringAsFixed(2).replaceAll(".", ",");
       _margem.text = (p.margem ?? 0).toStringAsFixed(2).replaceAll(".", ",");
     } else {
-      _codigoId.text = "Automático";
+      _codigoId.text = "Automatico";
     }
+
+    _carregarCategorias();
 
     // ✅ UI (Resumo) conforme digita
     for (final c in [
@@ -100,6 +113,15 @@ class _ProdutoFormPageState extends State<ProdutoFormPage>
     ]) {
       c.addListener(_softRefresh);
     }
+  }
+
+  final _estoqueMinimo = TextEditingController(text: "0,000");
+
+  Future<void> _carregarCategorias() async {
+    try {
+      _categorias = await CategoriaService.listar();
+      if (mounted) setState(() {});
+    } catch (_) {}
   }
 
   void _softRefresh() {
@@ -124,6 +146,7 @@ class _ProdutoFormPageState extends State<ProdutoFormPage>
     _cest.dispose();
     _cfop.dispose();
     _observacoes.dispose();
+    _estoqueMinimo.dispose();
     super.dispose();
   }
 
@@ -298,6 +321,9 @@ class _ProdutoFormPageState extends State<ProdutoFormPage>
 
     setState(() => _saving = true);
 
+    final estoqueAtual = _parseNum(_estoqueAtual.text);
+    final estoqueMinimo = _parseNum(_estoqueMinimo.text);
+
     try {
       if (widget.editing == null) {
         await AdminProdutosService.criar(
@@ -308,6 +334,10 @@ class _ProdutoFormPageState extends State<ProdutoFormPage>
           precoCusto: precoCusto > 0 ? precoCusto : null,
           markup: markup != 0 ? markup : null,
           margem: margem != 0 ? margem : null,
+          categoriaId: _categoriaId,
+          unidadeMedida: _um,
+          estoqueAtual: estoqueAtual,
+          estoqueMinimo: estoqueMinimo,
         );
       } else {
         await AdminProdutosService.atualizar(
@@ -319,6 +349,10 @@ class _ProdutoFormPageState extends State<ProdutoFormPage>
           precoCusto: precoCusto > 0 ? precoCusto : null,
           markup: markup != 0 ? markup : null,
           margem: margem != 0 ? margem : null,
+          categoriaId: _categoriaId,
+          unidadeMedida: _um,
+          estoqueAtual: estoqueAtual,
+          estoqueMinimo: estoqueMinimo,
         );
       }
 
@@ -473,10 +507,22 @@ class _ProdutoFormPageState extends State<ProdutoFormPage>
                       DropdownMenuItem(value: "UN", child: Text("UN")),
                       DropdownMenuItem(value: "KG", child: Text("KG")),
                       DropdownMenuItem(value: "LT", child: Text("LT")),
+                      DropdownMenuItem(value: "MT", child: Text("MT")),
+                      DropdownMenuItem(value: "PC", child: Text("PC")),
                     ],
                     onChanged: (v) => setState(() => _um = v ?? "UN"),
                   ),
                 ),
+                if (_categorias.isNotEmpty)
+                  _fieldBox(
+                    label: "Categoria",
+                    width: 220,
+                    child: DropdownButtonFormField<int>(
+                      value: _categoriaId,
+                      items: _categorias.map((c) => DropdownMenuItem(value: c.id, child: Text(c.descricao))).toList(),
+                      onChanged: (v) => setState(() => _categoriaId = v),
+                    ),
+                  ),
                 _fieldBox(
                   label: "Preço Venda *",
                   width: 160,
@@ -648,7 +694,49 @@ class _ProdutoFormPageState extends State<ProdutoFormPage>
     );
   }
 
-  Widget _tabEstoque() => _tabScroll(child: const SizedBox.shrink());
+  Widget _tabEstoque() => _tabScroll(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SwitchListTile.adaptive(
+          contentPadding: EdgeInsets.zero,
+          title: const Text("Controlar Estoque", style: TextStyle(fontWeight: FontWeight.w800)),
+          value: _controlarEstoque,
+          onChanged: (v) => setState(() => _controlarEstoque = v),
+        ),
+        const SizedBox(height: 12),
+        if (_controlarEstoque) ...[
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              _fieldBox(
+                label: "Estoque Atual",
+                width: 220,
+                child: TextField(
+                  controller: _estoqueAtual,
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+              _fieldBox(
+                label: "Estoque Minimo (alerta)",
+                width: 220,
+                child: TextField(
+                  controller: _estoqueMinimo,
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            "Quando o estoque ficar abaixo do minimo, um alerta aparecera no painel.",
+            style: TextStyle(color: Colors.black54),
+          ),
+        ],
+      ],
+    ),
+  );
   Widget _tabFiscal() => _tabScroll(child: const SizedBox.shrink());
   Widget _tabConfig() => _tabScroll(child: const SizedBox.shrink());
   Widget _tabIngredientes() => _tabScroll(child: const SizedBox.shrink());

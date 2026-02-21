@@ -9,6 +9,13 @@ class Produto {
   final double? markup;
   final double? margem;
 
+  // Novos campos
+  final int? categoriaId;
+  final String? categoriaDescricao;
+  final String unidadeMedida;
+  final double estoqueAtual;
+  final double estoqueMinimo;
+
   Produto({
     required this.id,
     required this.descricao,
@@ -18,6 +25,11 @@ class Produto {
     this.precoCusto,
     this.markup,
     this.margem,
+    this.categoriaId,
+    this.categoriaDescricao,
+    this.unidadeMedida = 'UN',
+    this.estoqueAtual = 0,
+    this.estoqueMinimo = 0,
   });
 
   static double _parseDouble(dynamic v) {
@@ -76,6 +88,14 @@ class Produto {
       precoCusto: _parseDoubleNullable(json['preco_custo']),
       markup: _parseDoubleNullable(json['markup']),
       margem: _parseDoubleNullable(json['margem']),
+
+      categoriaId: json['categoria_id'] != null
+          ? (json['categoria_id'] is num ? (json['categoria_id'] as num).toInt() : int.tryParse(json['categoria_id'].toString()))
+          : null,
+      categoriaDescricao: json['categoria_descricao']?.toString(),
+      unidadeMedida: json['unidade_medida']?.toString() ?? 'UN',
+      estoqueAtual: _parseDouble(json['estoque_atual']),
+      estoqueMinimo: _parseDouble(json['estoque_minimo']),
     );
   }
 
@@ -87,6 +107,11 @@ class Produto {
     double? precoCusto,
     double? markup,
     double? margem,
+    int? categoriaId,
+    String? categoriaDescricao,
+    String? unidadeMedida,
+    double? estoqueAtual,
+    double? estoqueMinimo,
   }) {
     return Produto(
       id: id,
@@ -97,6 +122,11 @@ class Produto {
       precoCusto: precoCusto ?? this.precoCusto,
       markup: markup ?? this.markup,
       margem: margem ?? this.margem,
+      categoriaId: categoriaId ?? this.categoriaId,
+      categoriaDescricao: categoriaDescricao ?? this.categoriaDescricao,
+      unidadeMedida: unidadeMedida ?? this.unidadeMedida,
+      estoqueAtual: estoqueAtual ?? this.estoqueAtual,
+      estoqueMinimo: estoqueMinimo ?? this.estoqueMinimo,
     );
   }
 }

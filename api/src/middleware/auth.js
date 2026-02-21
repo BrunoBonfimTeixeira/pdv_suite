@@ -27,4 +27,6 @@ function requireRole(...roles) {
   };
 }
 
-module.exports = { authRequired, requireRole };
+const adminRequired = requireRole("ADMIN");
+
+module.exports = { authRequired, requireRole, adminRequired };

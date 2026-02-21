@@ -16,6 +16,8 @@ class PdvResumoPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final temDesconto = controller.totalDescontos > 0.01;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
@@ -35,9 +37,25 @@ class PdvResumoPanel extends StatelessWidget {
             ),
             child: Column(
               children: [
-                const Text(
-                  'TOTAL',
-                  style: TextStyle(
+                if (temDesconto) ...[
+                  const Text(
+                    'SUBTOTAL',
+                    style: TextStyle(color: PdvTheme.textSecondary, fontSize: 11, letterSpacing: 1),
+                  ),
+                  Text(
+                    'R\$ ${controller.totalBruto.toStringAsFixed(2)}',
+                    style: const TextStyle(color: PdvTheme.textSecondary, fontSize: 18, fontWeight: FontWeight.w600, decoration: TextDecoration.lineThrough),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Desconto: -R\$ ${controller.totalDescontos.toStringAsFixed(2)}',
+                    style: const TextStyle(color: PdvTheme.warning, fontSize: 13, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 6),
+                ],
+                Text(
+                  temDesconto ? 'TOTAL' : 'TOTAL',
+                  style: const TextStyle(
                     color: PdvTheme.textSecondary,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -46,7 +64,7 @@ class PdvResumoPanel extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'R\$ ${controller.totalBruto.toStringAsFixed(2)}',
+                  'R\$ ${controller.totalLiquido.toStringAsFixed(2)}',
                   style: const TextStyle(
                     color: PdvTheme.accent,
                     fontSize: 42,
@@ -60,15 +78,11 @@ class PdvResumoPanel extends StatelessWidget {
           const SizedBox(height: 16),
           // Info itens
           _InfoRow(label: 'Itens', value: '${controller.totalItens}'),
-          _InfoRow(
-            label: 'Produtos',
-            value: '${controller.itens.length}',
-          ),
+          _InfoRow(label: 'Produtos', value: '${controller.itens.length}'),
           if (controller.clienteSelecionado != null)
-            _InfoRow(
-              label: 'Cliente',
-              value: controller.clienteSelecionado!.nome,
-            ),
+            _InfoRow(label: 'Cliente', value: controller.clienteSelecionado!.nome),
+          if (controller.descontoVenda > 0)
+            _InfoRow(label: 'Desc. Venda', value: '-R\$ ${controller.descontoVenda.toStringAsFixed(2)}'),
           const Spacer(),
           // Mensagens
           if (controller.mensagem.isNotEmpty)
@@ -103,7 +117,7 @@ class PdvResumoPanel extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
-          // Botões
+          // Botoes
           SizedBox(
             width: double.infinity,
             height: 52,

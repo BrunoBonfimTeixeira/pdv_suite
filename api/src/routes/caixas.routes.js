@@ -54,7 +54,17 @@ router.post("/fechar", async (req, res) => {
       "SELECT COALESCE(SUM(total_liquido), 0) AS total FROM vendas WHERE caixa_id = ? AND status = 'FINALIZADA'",
       [caixaId]
     );
-    const valorSistema = Number(totais[0].total) + Number(caixas[0].valor_abertura);
+
+    // Sangrias e suprimentos
+    const [sangrias] = await pool.query(
+      "SELECT COALESCE(SUM(CASE WHEN tipo='SANGRIA' THEN valor ELSE 0 END),0) AS total_sangrias, COALESCE(SUM(CASE WHEN tipo='SUPRIMENTO' THEN valor ELSE 0 END),0) AS total_suprimentos FROM sangrias_suprimentos WHERE caixa_id = ?",
+      [caixaId]
+    );
+
+    const totalVendas = Number(totais[0].total);
+    const totalSangrias = Number(sangrias[0].total_sangrias);
+    const totalSuprimentos = Number(sangrias[0].total_suprimentos);
+    const valorSistema = Number(caixas[0].valor_abertura) + totalVendas + totalSuprimentos - totalSangrias;
     const vFechamento = valorFechamento != null ? Number(valorFechamento) : valorSistema;
     const diferenca = vFechamento - valorSistema;
 
@@ -64,10 +74,62 @@ router.post("/fechar", async (req, res) => {
       [vFechamento, valorSistema, diferenca, observacoes || null, caixaId]
     );
 
-    res.json({ ok: true, valorSistema, valorFechamento: vFechamento, diferenca });
+    res.json({ ok: true, valorSistema, valorFechamento: vFechamento, diferenca, totalSangrias, totalSuprimentos });
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "Erro ao fechar caixa.", detail: String(e) });
+  }
+});
+
+// POST /caixas/sangria
+router.post("/sangria", async (req, res) => {
+  const { caixaId, valor, motivo } = req.body || {};
+  if (!caixaId || !valor) return res.status(400).json({ message: "caixaId e valor obrigatórios." });
+
+  try {
+    const [result] = await pool.query(
+      "INSERT INTO sangrias_suprimentos (caixa_id, usuario_id, tipo, valor, motivo) VALUES (?, ?, 'SANGRIA', ?, ?)",
+      [caixaId, req.user.id, valor, motivo || null]
+    );
+    res.json({ id: result.insertId });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Erro ao registrar sangria." });
+  }
+});
+
+// POST /caixas/suprimento
+router.post("/suprimento", async (req, res) => {
+  const { caixaId, valor, motivo } = req.body || {};
+  if (!caixaId || !valor) return res.status(400).json({ message: "caixaId e valor obrigatórios." });
+
+  try {
+    const [result] = await pool.query(
+      "INSERT INTO sangrias_suprimentos (caixa_id, usuario_id, tipo, valor, motivo) VALUES (?, ?, 'SUPRIMENTO', ?, ?)",
+      [caixaId, req.user.id, valor, motivo || null]
+    );
+    res.json({ id: result.insertId });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Erro ao registrar suprimento." });
+  }
+});
+
+// GET /caixas/:id/sangrias-suprimentos
+router.get("/:id/sangrias-suprimentos", async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT ss.*, u.nome AS usuario_nome
+       FROM sangrias_suprimentos ss
+       LEFT JOIN usuarios u ON u.id = ss.usuario_id
+       WHERE ss.caixa_id = ?
+       ORDER BY ss.id DESC`,
+      [req.params.id]
+    );
+    res.json(rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Erro ao listar sangrias/suprimentos." });
   }
 });
 

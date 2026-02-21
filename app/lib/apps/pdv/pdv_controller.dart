@@ -8,6 +8,7 @@ import 'package:pdv_lanchonete/core/models/usuario.dart';
 import 'package:pdv_lanchonete/core/models/venda.dart';
 import 'package:pdv_lanchonete/core/services/caixa_service.dart';
 import 'package:pdv_lanchonete/core/services/forma_pagamento_service.dart';
+import 'package:pdv_lanchonete/core/services/produto_service.dart';
 import 'package:pdv_lanchonete/core/services/venda_service.dart';
 
 class PdvController extends ChangeNotifier {
@@ -24,8 +25,17 @@ class PdvController extends ChangeNotifier {
   // Cliente selecionado
   Pessoa? clienteSelecionado;
 
+  // Desconto geral da venda
+  double descontoVenda = 0;
+
+  // Observações da venda
+  String? observacoes;
+
   // Última venda finalizada (para reimprimir)
   int? ultimaVendaId;
+
+  // Último troco
+  double? ultimoTroco;
 
   // Impressora automática
   bool impressoraAutomatica = false;
@@ -38,7 +48,10 @@ class PdvController extends ChangeNotifier {
   bool get caixaEstaAberto => caixaAberto != null;
   bool get temItens => itens.isNotEmpty;
 
-  double get totalBruto => itens.fold(0, (s, i) => s + i.subtotal);
+  double get totalBruto => itens.fold(0, (s, i) => s + i.subtotalBruto);
+  double get totalDescontoItens => itens.fold(0, (s, i) => s + i.descontoCalculado);
+  double get totalDescontos => totalDescontoItens + descontoVenda;
+  double get totalLiquido => totalBruto - totalDescontos;
   int get totalItens => itens.fold(0, (s, i) => s + i.quantidade);
 
   void setUsuario(Usuario u) {
@@ -103,6 +116,42 @@ class PdvController extends ChangeNotifier {
     }
   }
 
+  // ─── SANGRIA / SUPRIMENTO ───
+
+  Future<void> registrarSangria({required double valor, String? motivo}) async {
+    if (caixaAberto == null) throw Exception('Caixa não está aberto.');
+    processando = true;
+    notifyListeners();
+    try {
+      await CaixaService.sangria(caixaId: caixaAberto!.id, valor: valor, motivo: motivo);
+      mensagem = 'Sangria de R\$ ${valor.toStringAsFixed(2)} registrada!';
+      processando = false;
+      notifyListeners();
+    } catch (e) {
+      processando = false;
+      erro = e.toString();
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> registrarSuprimento({required double valor, String? motivo}) async {
+    if (caixaAberto == null) throw Exception('Caixa não está aberto.');
+    processando = true;
+    notifyListeners();
+    try {
+      await CaixaService.suprimento(caixaId: caixaAberto!.id, valor: valor, motivo: motivo);
+      mensagem = 'Suprimento de R\$ ${valor.toStringAsFixed(2)} registrado!';
+      processando = false;
+      notifyListeners();
+    } catch (e) {
+      processando = false;
+      erro = e.toString();
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   // ─── FORMAS DE PAGAMENTO ───
 
   Future<void> carregarFormasPagamento() async {
@@ -127,6 +176,27 @@ class PdvController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Adicionar produto via código de barras
+  Future<bool> adicionarPorCodigoBarras(String codigo) async {
+    final produto = await ProdutoService.buscarPorCodigoBarras(codigo);
+    if (produto == null) return false;
+
+    final idx = itens.indexWhere((i) => i.produtoId == produto.id);
+    if (idx >= 0) {
+      itens[idx].quantidade += 1;
+    } else {
+      itens.add(ItemCarrinho(
+        produtoId: produto.id,
+        descricao: produto.descricao,
+        preco: produto.preco,
+        unidade: produto.unidadeMedida,
+      ));
+    }
+    erro = null;
+    notifyListeners();
+    return true;
+  }
+
   void removerItem(int index) {
     if (index >= 0 && index < itens.length) {
       itens.removeAt(index);
@@ -139,6 +209,22 @@ class PdvController extends ChangeNotifier {
       itens[index].quantidade = novaQtd;
       notifyListeners();
     }
+  }
+
+  void setDescontoItem(int index, {double percentual = 0, double valor = 0}) {
+    if (index >= 0 && index < itens.length) {
+      if (percentual > 0) {
+        itens[index].setDescontoPercentual(percentual);
+      } else {
+        itens[index].setDescontoValor(valor);
+      }
+      notifyListeners();
+    }
+  }
+
+  void setDescontoVenda(double valor) {
+    descontoVenda = valor;
+    notifyListeners();
   }
 
   void setCliente(Pessoa? pessoa) {
@@ -158,12 +244,21 @@ class PdvController extends ChangeNotifier {
     try {
       final venda = Venda(itens: List.from(itens));
 
+      // Calcular troco
+      if (pagamentos != null && pagamentos.isNotEmpty) {
+        final totalPago = pagamentos.fold<double>(0, (s, p) => s + (double.tryParse(p['valor'].toString()) ?? 0));
+        final troco = totalPago - totalLiquido;
+        ultimoTroco = troco > 0.01 ? troco : null;
+      }
+
       final vendaId = await VendaService.salvarVenda(
         caixaId: caixaAberto!.id,
         usuarioId: usuario!.id,
         venda: venda,
         pessoaId: clienteSelecionado?.id,
         pagamentos: pagamentos,
+        observacoes: observacoes,
+        descontoVenda: descontoVenda,
       );
 
       ultimaVendaId = vendaId;
@@ -189,6 +284,8 @@ class PdvController extends ChangeNotifier {
   void limparVenda() {
     itens.clear();
     clienteSelecionado = null;
+    descontoVenda = 0;
+    observacoes = null;
     erro = null;
     notifyListeners();
   }

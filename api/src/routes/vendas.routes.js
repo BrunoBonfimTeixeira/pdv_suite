@@ -71,15 +71,23 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Criar venda (multi-pagamento)
+// Criar venda (multi-pagamento, descontos, estoque)
 router.post("/", async (req, res) => {
-  const { caixaId, usuarioId, pessoaId, itens, pagamentos } = req.body || {};
+  const { caixaId, usuarioId, pessoaId, itens, pagamentos, observacoes, descontoVenda } = req.body || {};
 
   if (!caixaId || !usuarioId) return res.status(400).json({ message: "caixaId e usuarioId são obrigatórios." });
   if (!Array.isArray(itens) || !itens.length) return res.status(400).json({ message: "itens obrigatórios." });
 
-  const totalBruto = itens.reduce((s, i) => s + (Number(i.preco) * Number(i.quantidade)), 0);
-  const desconto = 0;
+  // Calcular total com descontos por item
+  let totalBruto = 0;
+  let totalDescontoItens = 0;
+  for (const item of itens) {
+    const itemTotal = Number(item.preco) * Number(item.quantidade);
+    totalBruto += itemTotal;
+    totalDescontoItens += Number(item.descontoValor || 0);
+  }
+
+  const desconto = totalDescontoItens + Number(descontoVenda || 0);
   const acrescimo = 0;
   const totalLiquido = totalBruto - desconto + acrescimo;
 
@@ -89,19 +97,33 @@ router.post("/", async (req, res) => {
 
     const [resVenda] = await conn.query(
       `INSERT INTO vendas
-        (caixa_id, usuario_id, pessoa_id, data_hora, total_bruto, desconto, acrescimo, total_liquido, status, numero_nfe)
-       VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?)`,
-      [caixaId, usuarioId, pessoaId || null, totalBruto, desconto, acrescimo, totalLiquido, "FINALIZADA", 0]
+        (caixa_id, usuario_id, pessoa_id, data_hora, total_bruto, desconto, acrescimo, total_liquido, status, numero_nfe, observacoes)
+       VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?)`,
+      [caixaId, usuarioId, pessoaId || null, totalBruto, desconto, acrescimo, totalLiquido, "FINALIZADA", 0, observacoes || null]
     );
 
     const vendaId = resVenda.insertId;
 
     for (const item of itens) {
+      const valorTotal = Number(item.preco) * Number(item.quantidade);
       await conn.query(
-        `INSERT INTO venda_itens (venda_id, produto_id, quantidade, valor_unitario, valor_total)
-         VALUES (?, ?, ?, ?, ?)`,
-        [vendaId, item.produtoId, item.quantidade, item.preco, Number(item.preco) * Number(item.quantidade)]
+        `INSERT INTO venda_itens (venda_id, produto_id, quantidade, valor_unitario, valor_total, desconto_percentual, desconto_valor)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [vendaId, item.produtoId, item.quantidade, item.preco, valorTotal, item.descontoPercentual || 0, item.descontoValor || 0]
       );
+
+      // Descontar estoque
+      const [prods] = await conn.query("SELECT estoque_atual FROM produtos WHERE id = ?", [item.produtoId]);
+      if (prods.length > 0) {
+        const anterior = Number(prods[0].estoque_atual);
+        const posterior = anterior - Number(item.quantidade);
+        await conn.query("UPDATE produtos SET estoque_atual = ? WHERE id = ?", [posterior, item.produtoId]);
+        await conn.query(
+          `INSERT INTO movimentos_estoque (produto_id, tipo, quantidade, estoque_anterior, estoque_posterior, usuario_id, referencia_id, referencia_tipo)
+           VALUES (?, 'VENDA', ?, ?, ?, ?, ?, 'VENDA')`,
+          [item.produtoId, item.quantidade, anterior, posterior, usuarioId, vendaId]
+        );
+      }
     }
 
     // Multi-pagamento
@@ -128,20 +150,44 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Cancelar venda
+// Cancelar venda (reverte estoque)
 router.patch("/:id/cancelar", async (req, res) => {
+  const conn = await pool.getConnection();
   try {
-    const [result] = await pool.query(
-      "UPDATE vendas SET status = 'CANCELADA' WHERE id = ? AND status = 'FINALIZADA'",
-      [req.params.id]
-    );
-    if (result.affectedRows === 0) {
+    await conn.beginTransaction();
+
+    const [vendas] = await conn.query("SELECT * FROM vendas WHERE id = ? AND status = 'FINALIZADA'", [req.params.id]);
+    if (vendas.length === 0) {
+      await conn.rollback();
       return res.status(404).json({ message: "Venda não encontrada ou já cancelada." });
     }
+
+    await conn.query("UPDATE vendas SET status = 'CANCELADA' WHERE id = ?", [req.params.id]);
+
+    // Reverter estoque
+    const [itensVenda] = await conn.query("SELECT * FROM venda_itens WHERE venda_id = ?", [req.params.id]);
+    for (const item of itensVenda) {
+      const [prods] = await conn.query("SELECT estoque_atual FROM produtos WHERE id = ?", [item.produto_id]);
+      if (prods.length > 0) {
+        const anterior = Number(prods[0].estoque_atual);
+        const posterior = anterior + Number(item.quantidade);
+        await conn.query("UPDATE produtos SET estoque_atual = ? WHERE id = ?", [posterior, item.produto_id]);
+        await conn.query(
+          `INSERT INTO movimentos_estoque (produto_id, tipo, quantidade, estoque_anterior, estoque_posterior, usuario_id, referencia_id, referencia_tipo)
+           VALUES (?, 'CANCELAMENTO', ?, ?, ?, ?, ?, 'VENDA')`,
+          [item.produto_id, item.quantidade, anterior, posterior, req.user.id, req.params.id]
+        );
+      }
+    }
+
+    await conn.commit();
     res.json({ ok: true });
   } catch (e) {
+    await conn.rollback();
     console.error(e);
     res.status(500).json({ message: "Erro ao cancelar venda." });
+  } finally {
+    conn.release();
   }
 });
 

@@ -50,6 +50,11 @@ class AdminProdutosService {
     double? precoCusto,
     double? markup,
     double? margem,
+
+    int? categoriaId,
+    String? unidadeMedida,
+    double? estoqueAtual,
+    double? estoqueMinimo,
   }) async {
     if (!useAdminEndpoints) {
       throw Exception('CRUD exige rotas admin em $_adminEndpoint.');
@@ -64,6 +69,10 @@ class AdminProdutosService {
       if (precoCusto != null) 'preco_custo': precoCusto,
       if (markup != null) 'markup': markup,
       if (margem != null) 'margem': margem,
+      if (categoriaId != null) 'categoria_id': categoriaId,
+      if (unidadeMedida != null) 'unidade_medida': unidadeMedida,
+      if (estoqueAtual != null) 'estoque_atual': estoqueAtual,
+      if (estoqueMinimo != null) 'estoque_minimo': estoqueMinimo,
     };
 
     final res = await ApiClient.dio.post(_adminEndpoint, data: payload);
@@ -87,6 +96,11 @@ class AdminProdutosService {
     double? precoCusto,
     double? markup,
     double? margem,
+
+    int? categoriaId,
+    String? unidadeMedida,
+    double? estoqueAtual,
+    double? estoqueMinimo,
   }) async {
     if (!useAdminEndpoints) {
       throw Exception('CRUD exige rotas admin em $_adminEndpoint.');
@@ -101,6 +115,11 @@ class AdminProdutosService {
     if (precoCusto != null) payload['preco_custo'] = precoCusto;
     if (markup != null) payload['markup'] = markup;
     if (margem != null) payload['margem'] = margem;
+
+    if (categoriaId != null) payload['categoria_id'] = categoriaId;
+    if (unidadeMedida != null) payload['unidade_medida'] = unidadeMedida;
+    if (estoqueAtual != null) payload['estoque_atual'] = estoqueAtual;
+    if (estoqueMinimo != null) payload['estoque_minimo'] = estoqueMinimo;
 
     final res = await ApiClient.dio.patch('$_adminEndpoint/$id', data: payload);
     _ensureOk(res);

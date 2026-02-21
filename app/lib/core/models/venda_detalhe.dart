@@ -1,3 +1,22 @@
+// Helper para MySQL DECIMAL que vem como String no JSON
+double _toDouble(dynamic v) {
+  if (v == null) return 0;
+  if (v is num) return v.toDouble();
+  return double.tryParse(v.toString()) ?? 0;
+}
+
+int _toInt(dynamic v) {
+  if (v == null) return 0;
+  if (v is num) return v.toInt();
+  return int.tryParse(v.toString()) ?? 0;
+}
+
+int? _toIntNullable(dynamic v) {
+  if (v == null) return null;
+  if (v is num) return v.toInt();
+  return int.tryParse(v.toString());
+}
+
 class VendaDetalhe {
   final int id;
   final int caixaId;
@@ -46,19 +65,19 @@ class VendaDetalhe {
         [];
 
     return VendaDetalhe(
-      id: (json['id'] as num).toInt(),
-      caixaId: (json['caixa_id'] as num).toInt(),
-      usuarioId: (json['usuario_id'] as num).toInt(),
+      id: _toInt(json['id']),
+      caixaId: _toInt(json['caixa_id']),
+      usuarioId: _toInt(json['usuario_id']),
       usuarioNome: json['usuario_nome'] as String?,
-      pessoaId: (json['pessoa_id'] as num?)?.toInt(),
+      pessoaId: _toIntNullable(json['pessoa_id']),
       pessoaNome: json['pessoa_nome'] as String?,
       dataHora: DateTime.parse(json['data_hora'].toString()),
-      totalBruto: (json['total_bruto'] as num).toDouble(),
-      desconto: (json['desconto'] as num?)?.toDouble() ?? 0,
-      acrescimo: (json['acrescimo'] as num?)?.toDouble() ?? 0,
-      totalLiquido: (json['total_liquido'] as num).toDouble(),
+      totalBruto: _toDouble(json['total_bruto']),
+      desconto: _toDouble(json['desconto']),
+      acrescimo: _toDouble(json['acrescimo']),
+      totalLiquido: _toDouble(json['total_liquido']),
       status: json['status'] as String? ?? 'FINALIZADA',
-      numeroNfe: (json['numero_nfe'] as num?)?.toInt() ?? 0,
+      numeroNfe: _toInt(json['numero_nfe']),
       itens: itensList,
       pagamentos: pagsList,
     );
@@ -67,19 +86,19 @@ class VendaDetalhe {
   /// Para listagem (sem itens/pagamentos)
   factory VendaDetalhe.fromListJson(Map<String, dynamic> json) {
     return VendaDetalhe(
-      id: (json['id'] as num).toInt(),
-      caixaId: (json['caixa_id'] as num).toInt(),
-      usuarioId: (json['usuario_id'] as num).toInt(),
+      id: _toInt(json['id']),
+      caixaId: _toInt(json['caixa_id']),
+      usuarioId: _toInt(json['usuario_id']),
       usuarioNome: json['usuario_nome'] as String?,
-      pessoaId: (json['pessoa_id'] as num?)?.toInt(),
+      pessoaId: _toIntNullable(json['pessoa_id']),
       pessoaNome: json['pessoa_nome'] as String?,
       dataHora: DateTime.parse(json['data_hora'].toString()),
-      totalBruto: (json['total_bruto'] as num).toDouble(),
-      desconto: (json['desconto'] as num?)?.toDouble() ?? 0,
-      acrescimo: (json['acrescimo'] as num?)?.toDouble() ?? 0,
-      totalLiquido: (json['total_liquido'] as num).toDouble(),
+      totalBruto: _toDouble(json['total_bruto']),
+      desconto: _toDouble(json['desconto']),
+      acrescimo: _toDouble(json['acrescimo']),
+      totalLiquido: _toDouble(json['total_liquido']),
       status: json['status'] as String? ?? 'FINALIZADA',
-      numeroNfe: (json['numero_nfe'] as num?)?.toInt() ?? 0,
+      numeroNfe: _toInt(json['numero_nfe']),
     );
   }
 }
@@ -103,12 +122,12 @@ class VendaItemDetalhe {
 
   factory VendaItemDetalhe.fromJson(Map<String, dynamic> json) {
     return VendaItemDetalhe(
-      id: (json['id'] as num).toInt(),
-      produtoId: (json['produto_id'] as num).toInt(),
+      id: _toInt(json['id']),
+      produtoId: _toInt(json['produto_id']),
       produtoDescricao: json['produto_descricao'] as String?,
-      quantidade: (json['quantidade'] as num).toDouble(),
-      valorUnitario: (json['valor_unitario'] as num).toDouble(),
-      valorTotal: (json['valor_total'] as num).toDouble(),
+      quantidade: _toDouble(json['quantidade']),
+      valorUnitario: _toDouble(json['valor_unitario']),
+      valorTotal: _toDouble(json['valor_total']),
     );
   }
 }
@@ -128,10 +147,10 @@ class VendaPagamentoDetalhe {
 
   factory VendaPagamentoDetalhe.fromJson(Map<String, dynamic> json) {
     return VendaPagamentoDetalhe(
-      id: (json['id'] as num).toInt(),
-      formaPagamentoId: (json['forma_pagamento_id'] as num).toInt(),
+      id: _toInt(json['id']),
+      formaPagamentoId: _toInt(json['forma_pagamento_id']),
       formaDescricao: json['forma_descricao'] as String?,
-      valor: (json['valor'] as num).toDouble(),
+      valor: _toDouble(json['valor']),
     );
   }
 }

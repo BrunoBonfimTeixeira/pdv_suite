@@ -12,19 +12,23 @@ class PdvShortcutBar extends StatelessWidget {
         color: PdvTheme.surface,
         border: Border(top: BorderSide(color: PdvTheme.border)),
       ),
-      child: const Row(
-        children: [
-          _ShortcutChip(tecla: 'F1', label: 'Abrir Caixa'),
-          _ShortcutChip(tecla: 'F2', label: 'Fechar Caixa'),
-          _ShortcutChip(tecla: 'F3', label: 'Produtos'),
-          _ShortcutChip(tecla: 'F4', label: 'Pessoas'),
-          _ShortcutChip(tecla: 'F', label: 'Finalizar'),
-          _ShortcutChip(tecla: 'C', label: 'Cancelar'),
-          _ShortcutChip(tecla: 'P', label: 'Pagamentos'),
-          _ShortcutChip(tecla: 'R', label: 'Reimprimir'),
-          _ShortcutChip(tecla: 'I', label: 'Impressora'),
-          _ShortcutChip(tecla: 'B', label: 'Balanca'),
-        ],
+      child: const SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _ShortcutChip(tecla: 'F1', label: 'Abrir Caixa'),
+            _ShortcutChip(tecla: 'F2', label: 'Fechar Caixa'),
+            _ShortcutChip(tecla: 'F3', label: 'Produtos'),
+            _ShortcutChip(tecla: 'F4', label: 'Pessoas'),
+            _ShortcutChip(tecla: 'F5', label: 'Sangria'),
+            _ShortcutChip(tecla: 'F6', label: 'Suprimento'),
+            _ShortcutChip(tecla: 'F', label: 'Finalizar'),
+            _ShortcutChip(tecla: 'D', label: 'Desconto'),
+            _ShortcutChip(tecla: 'C', label: 'Cancelar'),
+            _ShortcutChip(tecla: 'R', label: 'Reimprimir'),
+            _ShortcutChip(tecla: 'I', label: 'Impressora'),
+          ],
+        ),
       ),
     );
   }

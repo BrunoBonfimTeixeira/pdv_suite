@@ -7,6 +7,10 @@ import 'package:pdv_lanchonete/apps/admin/pages/admin_produtos_page.dart';
 import 'package:pdv_lanchonete/apps/admin/pages/admin_vendas_page.dart';
 import 'package:pdv_lanchonete/apps/admin/pages/admin_caixas_page.dart';
 import 'package:pdv_lanchonete/apps/admin/pages/admin_pessoas_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_categorias_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_estoque_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_relatorios_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_formas_pagamento_page.dart';
 import 'package:pdv_lanchonete/core/services/api_client.dart';
 import 'package:pdv_lanchonete/core/services/auth_service.dart';
 import 'package:pdv_lanchonete/core/services/admin_produtos_service.dart';
@@ -73,6 +77,10 @@ class _AdminAppState extends State<AdminApp> {
         "/admin/vendas": (_) => const AdminVendasPage(),
         "/admin/caixas": (_) => const AdminCaixasPage(),
         "/admin/pessoas": (_) => const AdminPessoasPage(),
+        "/admin/categorias": (_) => const AdminCategoriasPage(),
+        "/admin/estoque": (_) => const AdminEstoquePage(),
+        "/admin/relatorios": (_) => const AdminRelatoriosPage(),
+        "/admin/formas-pagamento": (_) => const AdminFormasPagamentoPage(),
       },
       onUnknownRoute: (_) => MaterialPageRoute(
         builder: (_) => const Scaffold(

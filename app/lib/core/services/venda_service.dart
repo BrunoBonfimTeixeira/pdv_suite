@@ -11,17 +11,14 @@ class VendaService {
     required Venda venda,
     int? pessoaId,
     List<Map<String, dynamic>>? pagamentos,
+    String? observacoes,
+    double descontoVenda = 0,
   }) async {
     final itens = venda.itens.map((ItemCarrinho item) {
-      return {
-        'produtoId': item.produtoId,
-        'quantidade': item.quantidade,
-        'preco': item.preco,
-        'total': item.subtotal,
-      };
+      return item.toJson();
     }).toList();
 
-    final double totalLiquido = venda.total;
+    final double totalLiquido = venda.total - descontoVenda;
 
     final pags = pagamentos ?? [
       {'formaPagamentoId': 1, 'valor': totalLiquido}
@@ -36,6 +33,8 @@ class VendaService {
           if (pessoaId != null) 'pessoaId': pessoaId,
           'itens': itens,
           'pagamentos': pags,
+          if (observacoes != null) 'observacoes': observacoes,
+          if (descontoVenda > 0) 'descontoVenda': descontoVenda,
         },
       );
 

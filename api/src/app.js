@@ -13,6 +13,9 @@ const vendasRoutes = require("./routes/vendas.routes");
 const caixasRoutes = require("./routes/caixas.routes");
 const pessoasRoutes = require("./routes/pessoas.routes");
 const formasPagamentoRoutes = require("./routes/formas_pagamento.routes");
+const categoriasRoutes = require("./routes/categorias.routes");
+const estoqueRoutes = require("./routes/estoque.routes");
+const reportsRoutes = require("./routes/reports.routes");
 
 const app = express();
 
@@ -55,6 +58,9 @@ app.use("/vendas", vendasRoutes);
 app.use("/caixas", caixasRoutes);
 app.use("/pessoas", pessoasRoutes);
 app.use("/formas-pagamento", formasPagamentoRoutes);
+app.use("/categorias", categoriasRoutes);
+app.use("/estoque", estoqueRoutes);
+app.use("/reports", reportsRoutes);
 
 
 

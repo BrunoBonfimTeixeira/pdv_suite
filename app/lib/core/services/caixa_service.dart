@@ -69,4 +69,38 @@ class CaixaService {
       throw Exception(msg);
     }
   }
+
+  // Sangria
+  static Future<int> sangria({required int caixaId, required double valor, String? motivo}) async {
+    try {
+      final res = await ApiClient.dio.post('/caixas/sangria', data: {
+        'caixaId': caixaId,
+        'valor': valor,
+        if (motivo != null) 'motivo': motivo,
+      });
+      final body = res.data;
+      if (body is Map && body['id'] != null) return (body['id'] as num).toInt();
+      return 0;
+    } on DioException catch (e) {
+      final msg = e.response?.data?['message']?.toString() ?? e.message ?? 'Erro ao registrar sangria';
+      throw Exception(msg);
+    }
+  }
+
+  // Suprimento
+  static Future<int> suprimento({required int caixaId, required double valor, String? motivo}) async {
+    try {
+      final res = await ApiClient.dio.post('/caixas/suprimento', data: {
+        'caixaId': caixaId,
+        'valor': valor,
+        if (motivo != null) 'motivo': motivo,
+      });
+      final body = res.data;
+      if (body is Map && body['id'] != null) return (body['id'] as num).toInt();
+      return 0;
+    } on DioException catch (e) {
+      final msg = e.response?.data?['message']?.toString() ?? e.message ?? 'Erro ao registrar suprimento';
+      throw Exception(msg);
+    }
+  }
 }
