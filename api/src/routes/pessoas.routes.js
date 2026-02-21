@@ -45,10 +45,21 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+function validarCpfCnpj(valor) {
+  if (!valor) return true; // opcional
+  const limpo = valor.replace(/\D/g, "");
+  if (limpo.length === 11 || limpo.length === 14) return true;
+  return false;
+}
+
 // Criar pessoa
 router.post("/", async (req, res) => {
   const { nome, cpfCnpj, telefone, email, endereco, tipo } = req.body || {};
   if (!nome) return res.status(400).json({ message: "Nome é obrigatório." });
+
+  if (cpfCnpj && !validarCpfCnpj(cpfCnpj)) {
+    return res.status(400).json({ message: "CPF deve ter 11 dígitos ou CNPJ deve ter 14 dígitos." });
+  }
 
   try {
     const [result] = await pool.query(
@@ -72,7 +83,12 @@ router.patch("/:id", async (req, res) => {
   const params = [];
 
   if (nome !== undefined) { updates.push("nome=?"); params.push(nome); }
-  if (cpfCnpj !== undefined) { updates.push("cpf_cnpj=?"); params.push(cpfCnpj); }
+  if (cpfCnpj !== undefined) {
+    if (cpfCnpj && !validarCpfCnpj(cpfCnpj)) {
+      return res.status(400).json({ message: "CPF deve ter 11 dígitos ou CNPJ deve ter 14 dígitos." });
+    }
+    updates.push("cpf_cnpj=?"); params.push(cpfCnpj);
+  }
   if (telefone !== undefined) { updates.push("telefone=?"); params.push(telefone); }
   if (email !== undefined) { updates.push("email=?"); params.push(email); }
   if (endereco !== undefined) { updates.push("endereco=?"); params.push(endereco); }

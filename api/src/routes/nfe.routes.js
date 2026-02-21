@@ -46,9 +46,9 @@ router.post("/emitir", adminRequired, async (req, res) => {
 </nfeProc>`;
 
     const [result] = await pool.query(
-      `INSERT INTO notas_fiscais (venda_id, loja_id, tipo, status, xml, usuario_id, data_emissao)
-       VALUES (?, ?, ?, 'PENDENTE', ?, ?, NOW())`,
-      [venda_id, loja_id, tipo, xml, req.user.id]
+      `INSERT INTO notas_fiscais (venda_id, loja_id, tipo, status, xml_envio, data_emissao)
+       VALUES (?, ?, ?, 'PENDENTE', ?, NOW())`,
+      [venda_id, loja_id, tipo, xml]
     );
 
     const [nota] = await pool.query("SELECT * FROM notas_fiscais WHERE id = ?", [result.insertId]);
@@ -115,12 +115,12 @@ router.patch("/:id/cancelar", adminRequired, async (req, res) => {
 // GET /nfe/:id/xml — retornar XML
 router.get("/:id/xml", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT xml FROM notas_fiscais WHERE id = ?", [req.params.id]);
+    const [rows] = await pool.query("SELECT xml_envio FROM notas_fiscais WHERE id = ?", [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ message: "Nota fiscal não encontrada." });
-    if (!rows[0].xml) return res.status(404).json({ message: "XML não disponível." });
+    if (!rows[0].xml_envio) return res.status(404).json({ message: "XML não disponível." });
 
     res.set("Content-Type", "application/xml");
-    res.send(rows[0].xml);
+    res.send(rows[0].xml_envio);
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "Erro ao buscar XML da nota fiscal." });

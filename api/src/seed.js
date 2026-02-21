@@ -30,7 +30,6 @@ async function seed() {
 
     console.log("Usuario admin criado com sucesso!");
     console.log(`  Login: ${ADMIN_DEFAULT.login}`);
-    console.log(`  Senha: ${ADMIN_DEFAULT.senha}`);
     console.log("  IMPORTANTE: troque a senha em producao!");
   } finally {
     conn.release();

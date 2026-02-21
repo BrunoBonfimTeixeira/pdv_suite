@@ -45,9 +45,9 @@ class Caixa {
       id: (json['id'] is num) ? (json['id'] as num).toInt() : int.tryParse(json['id'].toString()) ?? 0,
       usuarioId: (json['usuario_id'] is num) ? (json['usuario_id'] as num).toInt() : int.tryParse(json['usuario_id'].toString()) ?? 0,
       usuarioNome: json['usuario_nome'] as String?,
-      dataAbertura: DateTime.parse(json['data_abertura'].toString()),
+      dataAbertura: DateTime.tryParse(json['data_abertura']?.toString() ?? '') ?? DateTime.now(),
       dataFechamento: json['data_fechamento'] != null
-          ? DateTime.parse(json['data_fechamento'].toString())
+          ? DateTime.tryParse(json['data_fechamento'].toString())
           : null,
       valorAbertura: _toDouble(json['valor_abertura']),
       valorFechamento: _toDoubleNullable(json['valor_fechamento']),

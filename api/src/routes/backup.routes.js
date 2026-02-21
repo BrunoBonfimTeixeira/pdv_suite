@@ -1,7 +1,7 @@
 const express = require("express");
 const pool = require("../db");
 const { authRequired, adminRequired } = require("../middleware/auth");
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 
 const router = express.Router();
 router.use(authRequired);
@@ -62,8 +62,10 @@ router.get("/export", async (req, res) => {
     const pass = process.env.DB_PASS;
     const dbName = process.env.DB_NAME;
 
-    const cmd = `mysqldump -h ${host} -P ${port} -u ${user}${pass ? ` -p${pass}` : ""} ${dbName}`;
-    const sqlDump = execSync(cmd, { maxBuffer: 100 * 1024 * 1024, encoding: "utf-8" });
+    const args = ["-h", host, "-P", port, "-u", user];
+    if (pass) args.push(`-p${pass}`);
+    args.push(dbName);
+    const sqlDump = execFileSync("mysqldump", args, { maxBuffer: 50 * 1024 * 1024, encoding: "utf-8" });
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     res.set("Content-Type", "text/plain; charset=utf-8");

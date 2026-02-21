@@ -85,10 +85,19 @@ router.post("/ajuste", adminRequired, async (req, res) => {
     const estoqueAnterior = Number(prods[0].estoque_atual);
     let estoqueNovo;
 
+    if (Number(quantidade) < 0) {
+      await conn.rollback();
+      return res.status(400).json({ message: "Quantidade deve ser positiva." });
+    }
+
     if (tipo === "ENTRADA") {
       estoqueNovo = estoqueAnterior + Number(quantidade);
     } else if (tipo === "SAIDA") {
       estoqueNovo = estoqueAnterior - Number(quantidade);
+      if (estoqueNovo < 0) {
+        await conn.rollback();
+        return res.status(400).json({ message: `Estoque insuficiente. Disponível: ${estoqueAnterior}.` });
+      }
     } else {
       // AJUSTE = define valor absoluto
       estoqueNovo = Number(quantidade);

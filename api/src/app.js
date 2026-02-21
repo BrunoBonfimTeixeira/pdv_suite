@@ -50,10 +50,22 @@ app.use(
 );
 
 // CORS controlado
-const corsOrigin = process.env.CORS_ORIGIN || "*";
+const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:*";
 app.use(
   cors({
-    origin: corsOrigin === "*" ? true : corsOrigin,
+    origin: (origin, callback) => {
+      // Permitir requests sem origin (mobile apps, curl, etc)
+      if (!origin) return callback(null, true);
+      const allowed = corsOrigin.split(",").map(s => s.trim());
+      const isAllowed = allowed.some(pattern => {
+        if (pattern === "*") return true;
+        // Suporta wildcard simples: http://localhost:*
+        const regex = new RegExp("^" + pattern.replace(/\*/g, ".*") + "$");
+        return regex.test(origin);
+      });
+      if (isAllowed) return callback(null, true);
+      callback(new Error("Bloqueado pelo CORS"));
+    },
     credentials: true
   })
 );

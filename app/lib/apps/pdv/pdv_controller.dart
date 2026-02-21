@@ -240,7 +240,10 @@ class PdvController extends ChangeNotifier {
   // ─── VENDA ───
 
   Future<int> finalizarVenda({List<Map<String, dynamic>>? pagamentos}) async {
-    if (!caixaEstaAberto) throw Exception('Caixa não está aberto.');
+    final caixa = caixaAberto;
+    final user = usuario;
+    if (caixa == null) throw Exception('Caixa não está aberto.');
+    if (user == null) throw Exception('Usuário não autenticado.');
     if (!temItens) throw Exception('Adicione itens ao carrinho.');
 
     processando = true;
@@ -253,12 +256,12 @@ class PdvController extends ChangeNotifier {
       if (pagamentos != null && pagamentos.isNotEmpty) {
         final totalPago = pagamentos.fold<double>(0, (s, p) => s + (double.tryParse(p['valor'].toString()) ?? 0));
         final troco = totalPago - totalLiquido;
-        ultimoTroco = troco > 0.01 ? troco : null;
+        ultimoTroco = troco > 0.005 ? troco : null;
       }
 
       final vendaId = await VendaService.salvarVenda(
-        caixaId: caixaAberto!.id,
-        usuarioId: usuario!.id,
+        caixaId: caixa.id,
+        usuarioId: user.id,
         venda: venda,
         pessoaId: clienteSelecionado?.id,
         pagamentos: pagamentos,

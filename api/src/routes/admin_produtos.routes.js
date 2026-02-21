@@ -67,6 +67,14 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "Descricao e preco_venda sao obrigatorios." });
     }
 
+    if (Number(preco_venda) < 0) {
+      return res.status(400).json({ message: "Preco de venda nao pode ser negativo." });
+    }
+
+    if (preco_custo !== undefined && preco_custo !== null && Number(preco_custo) < 0) {
+      return res.status(400).json({ message: "Preco de custo nao pode ser negativo." });
+    }
+
     if (!codigo_barras || !String(codigo_barras).trim()) {
       return res.status(400).json({ message: "Codigo de barras e obrigatorio." });
     }
@@ -116,7 +124,10 @@ router.patch("/:id", async (req, res) => {
     const params = [];
 
     if (descricao !== undefined) { updates.push("descricao=?"); params.push(descricao); }
-    if (preco_venda !== undefined) { updates.push("preco_venda=?"); params.push(preco_venda); }
+    if (preco_venda !== undefined) {
+      if (Number(preco_venda) < 0) return res.status(400).json({ message: "Preco de venda nao pode ser negativo." });
+      updates.push("preco_venda=?"); params.push(preco_venda);
+    }
 
     if (codigo_barras !== undefined) {
       const cb = String(codigo_barras).trim();

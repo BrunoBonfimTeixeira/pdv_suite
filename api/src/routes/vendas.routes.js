@@ -78,6 +78,17 @@ router.post("/", async (req, res) => {
   if (!caixaId || !usuarioId) return res.status(400).json({ message: "caixaId e usuarioId são obrigatórios." });
   if (!Array.isArray(itens) || !itens.length) return res.status(400).json({ message: "itens obrigatórios." });
 
+  // Validar itens
+  for (const item of itens) {
+    if (!item.produtoId) return res.status(400).json({ message: "Todos os itens devem ter produtoId." });
+    if (!Number(item.quantidade) || Number(item.quantidade) <= 0) {
+      return res.status(400).json({ message: `Quantidade inválida para o produto ${item.produtoId}.` });
+    }
+    if (Number(item.preco) < 0) {
+      return res.status(400).json({ message: `Preço inválido para o produto ${item.produtoId}.` });
+    }
+  }
+
   // Calcular total com descontos por item
   let totalBruto = 0;
   let totalDescontoItens = 0;
@@ -90,6 +101,14 @@ router.post("/", async (req, res) => {
   const desconto = totalDescontoItens + Number(descontoVenda || 0);
   const acrescimo = 0;
   const totalLiquido = totalBruto - desconto + acrescimo;
+
+  // Validar pagamentos cobrem o total
+  if (Array.isArray(pagamentos) && pagamentos.length > 0) {
+    const totalPago = pagamentos.reduce((s, p) => s + Number(p.valor || 0), 0);
+    if (totalPago < totalLiquido - 0.01) {
+      return res.status(400).json({ message: `Pagamento insuficiente. Total: R$ ${totalLiquido.toFixed(2)}, Pago: R$ ${totalPago.toFixed(2)}.` });
+    }
+  }
 
   const conn = await pool.getConnection();
   try {

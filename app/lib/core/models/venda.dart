@@ -13,11 +13,6 @@ class Venda {
       itens.fold(0, (sum, item) => sum + item.subtotal);
 
   Map<String, dynamic> toJson() => {
-    'emitente': {
-      'cnpj': '00000000000000',
-      'ie': 'ISENTO',
-      'uf': 'PR',
-    },
     'itens': itens.map((e) => e.toJson()).toList(),
     'pagamentos': [
       {'meio': meioPagamento, 'valor': total}

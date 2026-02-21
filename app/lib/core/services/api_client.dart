@@ -1,13 +1,24 @@
 // api_client.dart
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 
 class ApiClient {
   ApiClient._();
 
-  static const String baseUrl = 'http://127.0.0.1:3000';
+  static String _baseUrl = const String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'http://127.0.0.1:3000',
+  );
+
+  static String get baseUrl => _baseUrl;
+
+  static void setBaseUrl(String url) {
+    _baseUrl = url;
+    dio.options.baseUrl = url;
+  }
 
   static final Dio dio = Dio(BaseOptions(
-    baseUrl: baseUrl,
+    baseUrl: _baseUrl,
     connectTimeout: const Duration(seconds: 8),
     receiveTimeout: const Duration(seconds: 15),
     sendTimeout: const Duration(seconds: 15),
@@ -29,7 +40,6 @@ class ApiClient {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          // ✅ INJETA TOKEN AQUI
           final t = _token;
           if (t != null && t.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $t';
@@ -37,32 +47,32 @@ class ApiClient {
             options.headers.remove('Authorization');
           }
 
-          // logs
-          // ignore: avoid_print
-          print("➡️ ${options.method} ${options.uri}");
-          // ignore: avoid_print
-          print("AUTH: ${options.headers['Authorization']}");
+          if (kDebugMode) {
+            debugPrint("[API] ${options.method} ${options.uri}");
+          }
 
           return handler.next(options);
         },
         onError: (e, handler) {
-          final uri = e.requestOptions.uri;
-          final status = e.response?.statusCode;
-          final data = e.response?.data;
-          // ignore: avoid_print
-          print('[API ERROR] ${e.type} $uri status=$status data=$data msg=${e.message}');
+          if (kDebugMode) {
+            final uri = e.requestOptions.uri;
+            final status = e.response?.statusCode;
+            debugPrint('[API ERROR] ${e.type} $uri status=$status msg=${e.message}');
+          }
           return handler.next(e);
         },
       ),
     );
 
-    dio.interceptors.add(LogInterceptor(
-      request: true,
-      requestHeader: true,
-      requestBody: true,
-      responseHeader: true,
-      responseBody: true,
-    ));
+    if (kDebugMode) {
+      dio.interceptors.add(LogInterceptor(
+        request: false,
+        requestHeader: false,
+        requestBody: true,
+        responseHeader: false,
+        responseBody: true,
+      ));
+    }
   }
 
   static void setAuthToken(String? token) {
