@@ -4,6 +4,7 @@
   "type": "commonjs",
   "main": "src/app.js",
   "scripts": {
+    "migrate": "node src/migrate.js",
     "start": "node src/app.js",
     "dev": "nodemon src/app.js"
   },
