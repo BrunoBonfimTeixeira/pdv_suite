@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:pdv_lanchonete/apps/admin/admin_colors.dart';
+import 'package:pdv_lanchonete/apps/admin/widgets/admin_shell.dart';
 import 'package:pdv_lanchonete/core/models/produto.dart';
 import 'package:pdv_lanchonete/core/services/admin_produtos_service.dart';
 import 'produto_form_page.dart';
@@ -189,44 +190,14 @@ class _AdminProdutosPageState extends State<AdminProdutosPage> {
   // =========================
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AdminColors.bg,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: AdminColors.navy,
-        leadingWidth: 56,
-        leading: _IconSurface(
-          tooltip: "Voltar para Admin",
-          icon: Icons.arrow_back_rounded,
-          onTap: _goHomeAdmin,
-        ),
-        title: const Text(
-          "Produtos",
-          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.2),
-        ),
-        actions: [
-          _IconSurface(
-            tooltip: "Atualizar",
-            icon: Icons.refresh_rounded,
-            onTap: _carregar,
-          ),
-          const SizedBox(width: 10),
-          Padding(
-            padding: const EdgeInsets.only(right: 14),
-            child: _PrimaryButton(
-              icon: Icons.add_rounded,
-              label: "Cadastrar",
-              onTap: () => _abrirForm(),
-            ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 12, 18, 16),
-          child: Column(
+    final route = ModalRoute.of(context)?.settings.name ?? "/admin/produtos";
+
+    return AdminShell(
+      currentRoute: route,
+      subtitle: "Produtos",
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 12, 18, 16),
+        child: Column(
             children: [
               const SizedBox(height: 6),
               _HeroHeader(
@@ -281,14 +252,11 @@ class _AdminProdutosPageState extends State<AdminProdutosPage> {
             ],
           ),
         ),
-      ),
     );
   }
 }
 
-// ===================================
-// COMPONENTS
-// ===================================
+// =========================== COMPONENTS ===========================
 
 class _HeroHeader extends StatelessWidget {
   final Color navy;

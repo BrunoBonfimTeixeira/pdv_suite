@@ -1,6 +1,7 @@
 // lib/apps/admin/pages/admin_usuarios_page.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:pdv_lanchonete/apps/admin/widgets/admin_shell.dart';
 import 'package:pdv_lanchonete/core/models/usuario.dart';
 import 'package:pdv_lanchonete/core/services/admin_service.dart';
 
@@ -201,26 +202,34 @@ class _AdminUsuariosPageState extends State<AdminUsuariosPage> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Usuários'),
-        actions: [
-          FilledButton.icon(
-            onPressed: _criarUsuario,
-            icon: const Icon(Icons.person_add, size: 18),
-            label: const Text('Cadastrar'),
-          ),
-          const SizedBox(width: 8),
-          IconButton(
-            tooltip: 'Atualizar',
-            onPressed: _loading ? null : _load,
-            icon: const Icon(Icons.refresh),
-          ),
-          const SizedBox(width: 6),
-        ],
-      ),
-      body: Column(
+    final route = ModalRoute.of(context)?.settings.name ?? "/admin/usuarios";
+
+    return AdminShell(
+      currentRoute: route,
+      subtitle: "Usuários",
+      child: Column(
         children: [
+          // Action bar
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Row(
+              children: [
+                Text('${_filtered.length} usuário(s)', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                const Spacer(),
+                IconButton(
+                  tooltip: 'Atualizar',
+                  onPressed: _loading ? null : _load,
+                  icon: const Icon(Icons.refresh),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: _criarUsuario,
+                  icon: const Icon(Icons.person_add, size: 18),
+                  label: const Text('Cadastrar'),
+                ),
+              ],
+            ),
+          ),
           // Top filters
           _Toolbar(
             searchCtrl: _searchCtrl,

@@ -2,12 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:pdv_lanchonete/core/models/caixa.dart';
 import 'package:pdv_lanchonete/core/models/forma_pagamento.dart';
 import 'package:pdv_lanchonete/core/models/item_carrinho.dart';
+import 'package:pdv_lanchonete/core/models/pdv_config.dart';
 import 'package:pdv_lanchonete/core/models/pessoa.dart';
 import 'package:pdv_lanchonete/core/models/produto.dart';
 import 'package:pdv_lanchonete/core/models/usuario.dart';
 import 'package:pdv_lanchonete/core/models/venda.dart';
 import 'package:pdv_lanchonete/core/services/caixa_service.dart';
 import 'package:pdv_lanchonete/core/services/forma_pagamento_service.dart';
+import 'package:pdv_lanchonete/core/services/pdv_config_service.dart';
 import 'package:pdv_lanchonete/core/services/produto_service.dart';
 import 'package:pdv_lanchonete/core/services/venda_service.dart';
 
@@ -39,6 +41,9 @@ class PdvController extends ChangeNotifier {
 
   // Impressora automática
   bool impressoraAutomatica = false;
+
+  // Personalização PDV
+  PdvConfig pdvConfig = PdvConfig(id: 0, usuarioId: 0);
 
   // Status
   String? erro;
@@ -299,5 +304,27 @@ class PdvController extends ChangeNotifier {
     mensagem = '';
     erro = null;
     notifyListeners();
+  }
+
+  // ─── PDV CONFIG ───
+
+  Future<void> carregarPdvConfig() async {
+    try {
+      pdvConfig = await PdvConfigService.carregar();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Erro ao carregar PDV config: $e');
+    }
+  }
+
+  Future<void> salvarPdvConfig(PdvConfig config) async {
+    try {
+      await PdvConfigService.salvar(config.toJson());
+      pdvConfig = config;
+      notifyListeners();
+    } catch (e) {
+      erro = e.toString();
+      notifyListeners();
+    }
   }
 }

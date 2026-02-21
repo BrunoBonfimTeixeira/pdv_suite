@@ -16,6 +16,17 @@ const formasPagamentoRoutes = require("./routes/formas_pagamento.routes");
 const categoriasRoutes = require("./routes/categorias.routes");
 const estoqueRoutes = require("./routes/estoque.routes");
 const reportsRoutes = require("./routes/reports.routes");
+const lojasRoutes = require("./routes/lojas.routes");
+const cartoesRoutes = require("./routes/cartoes.routes");
+const permissoesRoutes = require("./routes/permissoes.routes");
+const infoFiscaisRoutes = require("./routes/info_fiscais.routes");
+const conversaoUmRoutes = require("./routes/conversao_um.routes");
+const tabelaNutricionalRoutes = require("./routes/tabela_nutricional.routes");
+const infoExtrasRoutes = require("./routes/info_extras.routes");
+const nfeRoutes = require("./routes/nfe.routes");
+const osRoutes = require("./routes/os.routes");
+const pdvConfigRoutes = require("./routes/pdv_config.routes");
+const backupRoutes = require("./routes/backup.routes");
 
 const app = express();
 
@@ -61,8 +72,17 @@ app.use("/formas-pagamento", formasPagamentoRoutes);
 app.use("/categorias", categoriasRoutes);
 app.use("/estoque", estoqueRoutes);
 app.use("/reports", reportsRoutes);
-
-
+app.use("/lojas", lojasRoutes);
+app.use("/cartoes", cartoesRoutes);
+app.use("/permissoes", permissoesRoutes);
+app.use("/info-fiscais", infoFiscaisRoutes);
+app.use("/conversao-um", conversaoUmRoutes);
+app.use("/tabela-nutricional", tabelaNutricionalRoutes);
+app.use("/info-extras", infoExtrasRoutes);
+app.use("/nfe", nfeRoutes);
+app.use("/os", osRoutes);
+app.use("/pdv-config", pdvConfigRoutes);
+app.use("/backup", backupRoutes);
 
 // 404
 app.use((req, res) => res.status(404).json({ message: "Rota não encontrada." }));

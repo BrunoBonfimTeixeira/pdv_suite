@@ -10,6 +10,8 @@ class PdvItensPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final itens = controller.itens;
+    final cfgAccent = PdvTheme.accentFrom(controller.pdvConfig);
+    final cfgBorder = PdvTheme.borderFrom(controller.pdvConfig);
 
     if (itens.isEmpty) {
       return Center(
@@ -39,7 +41,7 @@ class PdvItensPanel extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
             color: PdvTheme.card.withOpacity(0.5),
-            border: const Border(bottom: BorderSide(color: PdvTheme.border)),
+            border: Border(bottom: BorderSide(color: cfgBorder)),
           ),
           child: const Row(
             children: [
@@ -65,7 +67,7 @@ class PdvItensPanel extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
                   color: index.isEven ? Colors.transparent : PdvTheme.card.withOpacity(0.2),
-                  border: const Border(bottom: BorderSide(color: PdvTheme.border, width: 0.5)),
+                  border: Border(bottom: BorderSide(color: cfgBorder, width: 0.5)),
                 ),
                 child: Row(
                   children: [
@@ -106,7 +108,7 @@ class PdvItensPanel extends StatelessWidget {
                           ),
                           InkWell(
                             onTap: () => controller.alterarQuantidade(index, item.quantidade + 1),
-                            child: const Icon(Icons.add_circle_outline, size: 16, color: PdvTheme.accent),
+                            child: Icon(Icons.add_circle_outline, size: 16, color: cfgAccent),
                           ),
                         ],
                       ),
@@ -151,7 +153,7 @@ class PdvItensPanel extends StatelessWidget {
                       width: 90,
                       child: Text(
                         'R\$ ${item.subtotal.toStringAsFixed(2)}',
-                        style: const TextStyle(color: PdvTheme.accent, fontWeight: FontWeight.w700, fontSize: 14),
+                        style: TextStyle(color: cfgAccent, fontWeight: FontWeight.w700, fontSize: 14),
                         textAlign: TextAlign.right,
                       ),
                     ),

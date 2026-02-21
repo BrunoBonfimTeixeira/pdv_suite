@@ -17,12 +17,15 @@ class PdvResumoPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final temDesconto = controller.totalDescontos > 0.01;
+    final cfgAccent = PdvTheme.accentFrom(controller.pdvConfig);
+    final cfgBorder = PdvTheme.borderFrom(controller.pdvConfig);
+    final cfgBg = PdvTheme.bgFrom(controller.pdvConfig);
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: PdvTheme.surface,
-        border: Border(left: BorderSide(color: PdvTheme.border)),
+        border: Border(left: BorderSide(color: cfgBorder)),
       ),
       child: Column(
         children: [
@@ -33,7 +36,7 @@ class PdvResumoPanel extends StatelessWidget {
             decoration: BoxDecoration(
               color: PdvTheme.card,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: PdvTheme.accent.withOpacity(0.3)),
+              border: Border.all(color: cfgAccent.withValues(alpha: 0.3)),
             ),
             child: Column(
               children: [
@@ -53,9 +56,9 @@ class PdvResumoPanel extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                 ],
-                Text(
-                  temDesconto ? 'TOTAL' : 'TOTAL',
-                  style: const TextStyle(
+                const Text(
+                  'TOTAL',
+                  style: TextStyle(
                     color: PdvTheme.textSecondary,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -65,8 +68,8 @@ class PdvResumoPanel extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   'R\$ ${controller.totalLiquido.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    color: PdvTheme.accent,
+                  style: TextStyle(
+                    color: cfgAccent,
                     fontSize: 42,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1,
@@ -91,13 +94,13 @@ class PdvResumoPanel extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: PdvTheme.accent.withOpacity(0.1),
+                color: cfgAccent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: PdvTheme.accent.withOpacity(0.3)),
+                border: Border.all(color: cfgAccent.withValues(alpha: 0.3)),
               ),
               child: Text(
                 controller.mensagem,
-                style: const TextStyle(color: PdvTheme.accent, fontSize: 13),
+                style: TextStyle(color: cfgAccent, fontSize: 13),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -107,9 +110,9 @@ class PdvResumoPanel extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: PdvTheme.danger.withOpacity(0.1),
+                color: PdvTheme.danger.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: PdvTheme.danger.withOpacity(0.3)),
+                border: Border.all(color: PdvTheme.danger.withValues(alpha: 0.3)),
               ),
               child: Text(
                 controller.erro!,
@@ -128,8 +131,8 @@ class PdvResumoPanel extends StatelessWidget {
               icon: const Icon(Icons.check_circle, size: 22),
               label: const Text('FINALIZAR (F)', style: TextStyle(fontSize: 16)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: PdvTheme.accent,
-                foregroundColor: PdvTheme.bg,
+                backgroundColor: cfgAccent,
+                foregroundColor: cfgBg,
                 disabledBackgroundColor: PdvTheme.card,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),

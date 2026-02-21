@@ -15,6 +15,7 @@ import 'package:pdv_lanchonete/apps/pdv/dialogs/finalizar_venda_dialog.dart';
 import 'package:pdv_lanchonete/apps/pdv/dialogs/sangria_dialog.dart';
 import 'package:pdv_lanchonete/apps/pdv/dialogs/suprimento_dialog.dart';
 import 'package:pdv_lanchonete/apps/pdv/dialogs/desconto_venda_dialog.dart';
+import 'package:pdv_lanchonete/apps/pdv/dialogs/pdv_personalizacao_dialog.dart';
 import 'package:pdv_lanchonete/core/models/pessoa.dart';
 import 'package:pdv_lanchonete/core/models/produto.dart';
 import 'package:pdv_lanchonete/core/models/usuario.dart';
@@ -50,6 +51,7 @@ class _PdvScreenState extends State<PdvScreen> {
       _ctrl.setUsuario(user);
       await _ctrl.verificarCaixaAberto();
       await _ctrl.carregarFormasPagamento();
+      await _ctrl.carregarPdvConfig();
     }
     if (mounted) setState(() => _booting = false);
   }
@@ -125,6 +127,7 @@ class _PdvScreenState extends State<PdvScreen> {
     if (key == LogicalKeyboardKey.keyB) { _balanca(); return KeyEventResult.handled; }
     if (key == LogicalKeyboardKey.keyP) { _finalizarVenda(); return KeyEventResult.handled; }
     if (key == LogicalKeyboardKey.keyD) { _descontoVenda(); return KeyEventResult.handled; }
+    if (key == LogicalKeyboardKey.f10) { _personalizarPdv(); return KeyEventResult.handled; }
 
     return KeyEventResult.ignored;
   }
@@ -399,6 +402,21 @@ class _PdvScreenState extends State<PdvScreen> {
     _showSnack('Balanca (placeholder)');
   }
 
+  Future<void> _personalizarPdv() async {
+    _dialogOpen = true;
+    final result = await showDialog(
+      context: context,
+      builder: (_) => PdvPersonalizacaoDialog(config: _ctrl.pdvConfig),
+    );
+    _dialogOpen = false;
+    _focusNode.requestFocus();
+
+    if (result != null) {
+      await _ctrl.salvarPdvConfig(result);
+      _showSnack('Cores atualizadas!');
+    }
+  }
+
   void _showSnack(String msg, {bool isError = false}) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -415,17 +433,21 @@ class _PdvScreenState extends State<PdvScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cfgBg = PdvTheme.bgFrom(_ctrl.pdvConfig);
+    final cfgAccent = PdvTheme.accentFrom(_ctrl.pdvConfig);
+    final cfgBorder = PdvTheme.borderFrom(_ctrl.pdvConfig);
+
     if (_booting) {
-      return const Scaffold(
-        backgroundColor: PdvTheme.bg,
-        body: Center(child: CircularProgressIndicator(color: PdvTheme.accent)),
+      return Scaffold(
+        backgroundColor: cfgBg,
+        body: Center(child: CircularProgressIndicator(color: cfgAccent)),
       );
     }
 
     // Not logged in
     if (_ctrl.usuario == null) {
       return Scaffold(
-        backgroundColor: PdvTheme.bg,
+        backgroundColor: cfgBg,
         body: PdvLoginPanel(onLoggedIn: _onLoggedIn),
       );
     }
@@ -437,7 +459,7 @@ class _PdvScreenState extends State<PdvScreen> {
       child: GestureDetector(
         onTap: () => _focusNode.requestFocus(),
         child: Scaffold(
-          backgroundColor: PdvTheme.bg,
+          backgroundColor: cfgBg,
           body: Column(
             children: [
               PdvTopBar(controller: _ctrl),
@@ -445,9 +467,9 @@ class _PdvScreenState extends State<PdvScreen> {
               if (_ctrl.caixaEstaAberto)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: PdvTheme.surface,
-                    border: Border(bottom: BorderSide(color: PdvTheme.border)),
+                    border: Border(bottom: BorderSide(color: cfgBorder)),
                   ),
                   child: Row(
                     children: [

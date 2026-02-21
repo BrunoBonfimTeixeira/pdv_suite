@@ -27,6 +27,7 @@ class PdvShortcutBar extends StatelessWidget {
             _ShortcutChip(tecla: 'C', label: 'Cancelar'),
             _ShortcutChip(tecla: 'R', label: 'Reimprimir'),
             _ShortcutChip(tecla: 'I', label: 'Impressora'),
+            _ShortcutChip(tecla: 'F10', label: 'Personalizar'),
           ],
         ),
       ),

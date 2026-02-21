@@ -10,16 +10,18 @@ class PdvTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final caixa = controller.caixaAberto;
     final usuario = controller.usuario;
+    final cfgAccent = PdvTheme.accentFrom(controller.pdvConfig);
+    final cfgBorder = PdvTheme.borderFrom(controller.pdvConfig);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: PdvTheme.surface,
-        border: Border(bottom: BorderSide(color: PdvTheme.border)),
+        border: Border(bottom: BorderSide(color: cfgBorder)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.point_of_sale, color: PdvTheme.accent, size: 28),
+          Icon(Icons.point_of_sale, color: cfgAccent, size: 28),
           const SizedBox(width: 10),
           const Text(
             'PDV',
@@ -36,13 +38,13 @@ class PdvTopBar extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: caixa != null
-                  ? PdvTheme.accent.withOpacity(0.15)
-                  : PdvTheme.danger.withOpacity(0.15),
+                  ? cfgAccent.withValues(alpha: 0.15)
+                  : PdvTheme.danger.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: caixa != null
-                    ? PdvTheme.accent.withOpacity(0.4)
-                    : PdvTheme.danger.withOpacity(0.4),
+                    ? cfgAccent.withValues(alpha: 0.4)
+                    : PdvTheme.danger.withValues(alpha: 0.4),
               ),
             ),
             child: Row(
@@ -51,13 +53,13 @@ class PdvTopBar extends StatelessWidget {
                 Icon(
                   caixa != null ? Icons.lock_open : Icons.lock,
                   size: 16,
-                  color: caixa != null ? PdvTheme.accent : PdvTheme.danger,
+                  color: caixa != null ? cfgAccent : PdvTheme.danger,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   caixa != null ? 'Caixa #${caixa.id}' : 'Caixa Fechado',
                   style: TextStyle(
-                    color: caixa != null ? PdvTheme.accent : PdvTheme.danger,
+                    color: caixa != null ? cfgAccent : PdvTheme.danger,
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
                   ),
@@ -77,7 +79,7 @@ class PdvTopBar extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.person, size: 16, color: PdvTheme.accent),
+                  Icon(Icons.person, size: 16, color: cfgAccent),
                   const SizedBox(width: 6),
                   Text(
                     controller.clienteSelecionado!.nome,
@@ -102,7 +104,7 @@ class PdvTopBar extends StatelessWidget {
               icon: Icon(
                 Icons.print,
                 color: controller.impressoraAutomatica
-                    ? PdvTheme.accent
+                    ? cfgAccent
                     : PdvTheme.textSecondary,
                 size: 20,
               ),

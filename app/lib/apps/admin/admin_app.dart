@@ -11,6 +11,17 @@ import 'package:pdv_lanchonete/apps/admin/pages/admin_categorias_page.dart';
 import 'package:pdv_lanchonete/apps/admin/pages/admin_estoque_page.dart';
 import 'package:pdv_lanchonete/apps/admin/pages/admin_relatorios_page.dart';
 import 'package:pdv_lanchonete/apps/admin/pages/admin_formas_pagamento_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_cartoes_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_permissoes_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_lojas_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_info_fiscais_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_conversao_um_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_tabela_nutricional_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_info_extras_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_nfe_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_os_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_backup_page.dart';
+import 'package:pdv_lanchonete/apps/admin/pages/admin_configuracoes_page.dart';
 import 'package:pdv_lanchonete/core/services/api_client.dart';
 import 'package:pdv_lanchonete/core/services/auth_service.dart';
 import 'package:pdv_lanchonete/core/services/admin_produtos_service.dart';
@@ -81,6 +92,17 @@ class _AdminAppState extends State<AdminApp> {
         "/admin/estoque": (_) => const AdminEstoquePage(),
         "/admin/relatorios": (_) => const AdminRelatoriosPage(),
         "/admin/formas-pagamento": (_) => const AdminFormasPagamentoPage(),
+        "/admin/cartoes": (_) => const AdminCartoesPage(),
+        "/admin/permissoes": (_) => const AdminPermissoesPage(),
+        "/admin/lojas": (_) => const AdminLojasPage(),
+        "/admin/info-fiscais": (_) => const AdminInfoFiscaisPage(),
+        "/admin/conversao-um": (_) => const AdminConversaoUmPage(),
+        "/admin/tabela-nutricional": (_) => const AdminTabelaNutricionalPage(),
+        "/admin/info-extras": (_) => const AdminInfoExtrasPage(),
+        "/admin/nfe": (_) => const AdminNfePage(),
+        "/admin/os": (_) => const AdminOsPage(),
+        "/admin/backup": (_) => const AdminBackupPage(),
+        "/admin/configuracoes": (_) => const AdminConfiguracoesPage(),
       },
       onUnknownRoute: (_) => MaterialPageRoute(
         builder: (_) => const Scaffold(
