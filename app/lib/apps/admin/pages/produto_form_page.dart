@@ -568,19 +568,33 @@ class _ProdutoFormPageState extends State<ProdutoFormPage>
           ),
           const Divider(height: 1),
 
-          SizedBox(
-            height: 560,
-            child: TabBarView(
-              controller: _tab,
-              children: [
-                _tabGeral(),
-                _tabEstoque(),
-                _tabFiscal(),
-                _tabConfig(),
-                _tabIngredientes(),
-              ],
+          if (isNarrow)
+            SizedBox(
+              height: 480,
+              child: TabBarView(
+                controller: _tab,
+                children: [
+                  _tabGeral(),
+                  _tabEstoque(),
+                  _tabFiscal(),
+                  _tabConfig(),
+                  _tabIngredientes(),
+                ],
+              ),
+            )
+          else
+            Expanded(
+              child: TabBarView(
+                controller: _tab,
+                children: [
+                  _tabGeral(),
+                  _tabEstoque(),
+                  _tabFiscal(),
+                  _tabConfig(),
+                  _tabIngredientes(),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
